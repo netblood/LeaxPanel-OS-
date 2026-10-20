@@ -7,11 +7,14 @@
 <body class="<%= bodyClass || '' %>">
   <%- include('partials/navbar'); %>
   <main class="container">
-    <% if (messages.success) { %>
-      <div class="alert alert-success"><%= messages.success %></div>
+    <% if (success && success.length) { %>
+      <div class="alert alert-success"><%= success.join('') %></div>
     <% } %>
-    <% if (messages.error) { %>
-      <div class="alert alert-danger"><%= messages.error %></div>
+    <% if (error && error.length) { %>
+      <div class="alert alert-danger"><%= error.join('') %></div>
+    <% } %>
+    <% if (errors && errors.length) { %>
+      <div class="alert alert-danger"><%= errors.join('') %></div>
     <% } %>
     <%- body %>
   </main>
