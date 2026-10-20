@@ -1,0 +1,25 @@
+<%- include('../partials/head'); %>
+<title>File Manager - LEAXOS</title>
+<body>
+  <%- include('../partials/navbar'); %>
+  <main class="container">
+    <%- include('../partials/flash'); %>
+    <h1>File Manager</h1>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Filename</th><th>Size</th><th>Created</th></tr>
+      </thead>
+      <tbody>
+        <% files.forEach(function(file) { %>
+          <tr>
+            <td><%= file.id %></td>
+            <td><%= file.name %></td>
+            <td><%= file.size %></td>
+            <td><%= file.created_at %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </main>
+  <script src="/js/main.js"></script>
+</body>

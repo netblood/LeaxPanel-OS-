@@ -1,0 +1,26 @@
+<%- include('../partials/head'); %>
+<title>Databases - LEAXOS</title>
+<body>
+  <%- include('../partials/navbar'); %>
+  <main class="container">
+    <%- include('../partials/flash'); %>
+    <h1>Databases</h1>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Type</th><th>Status</th><th>Created</th></tr>
+      </thead>
+      <tbody>
+        <% databases.forEach(function(db) { %>
+          <tr>
+            <td><%= db.id %></td>
+            <td><%= db.name %></td>
+            <td><%= db.type %></td>
+            <td><%= db.status %></td>
+            <td><%= db.created_at %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </main>
+  <script src="/js/main.js"></script>
+</body>

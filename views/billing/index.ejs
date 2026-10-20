@@ -1,0 +1,26 @@
+<%- include('../partials/head'); %>
+<title>Billing - LEAXOS</title>
+<body>
+  <%- include('../partials/navbar'); %>
+  <main class="container">
+    <%- include('../partials/flash'); %>
+    <h1>Billing</h1>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Customer</th><th>Amount</th><th>Status</th><th>Created</th></tr>
+      </thead>
+      <tbody>
+        <% invoices.forEach(function(invoice) { %>
+          <tr>
+            <td><%= invoice.id %></td>
+            <td><%= invoice.customer_name || invoice.customer %></td>
+            <td><%= invoice.amount %></td>
+            <td><%= invoice.status %></td>
+            <td><%= invoice.created_at %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </main>
+  <script src="/js/main.js"></script>
+</body>

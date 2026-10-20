@@ -1,0 +1,29 @@
+<%- include('../partials/head'); %>
+<title>Backups - LEAXOS</title>
+<body>
+  <%- include('../partials/navbar'); %>
+  <main class="container">
+    <%- include('../partials/flash'); %>
+    <h1>Backups</h1>
+    <form action="/backups/create" method="POST" class="inline-form">
+      <button type="submit" class="btn btn-primary">Create Backup</button>
+    </form>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Type</th><th>Status</th><th>Created</th></tr>
+      </thead>
+      <tbody>
+        <% backups.forEach(function(backup) { %>
+          <tr>
+            <td><%= backup.id %></td>
+            <td><%= backup.name %></td>
+            <td><%= backup.type %></td>
+            <td><%= backup.status %></td>
+            <td><%= backup.created_at %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </main>
+  <script src="/js/main.js"></script>
+</body>

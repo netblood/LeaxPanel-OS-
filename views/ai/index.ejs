@@ -1,0 +1,27 @@
+<%- include('../partials/head'); %>
+<title>AI Platform - LEAXOS</title>
+<body>
+  <%- include('../partials/navbar'); %>
+  <main class="container">
+    <%- include('../partials/flash'); %>
+    <h1>AI Platform</h1>
+    <a href="/ai/create" class="btn btn-primary">Create Agent</a>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Type</th><th>Model</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <% agents.forEach(function(agent) { %>
+          <tr>
+            <td><%= agent.id %></td>
+            <td><%= agent.name %></td>
+            <td><%= agent.type %></td>
+            <td><%= agent.model %></td>
+            <td><a href="/ai/<%= agent.id %>/edit">Edit</a></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </main>
+  <script src="/js/main.js"></script>
+</body>

@@ -1,0 +1,25 @@
+<%- include('../partials/head'); %>
+<title>WhatsApp - LEAXOS</title>
+<body>
+  <%- include('../partials/navbar'); %>
+  <main class="container">
+    <%- include('../partials/flash'); %>
+    <h1>WhatsApp</h1>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Instance</th><th>Status</th><th>Created</th></tr>
+      </thead>
+      <tbody>
+        <% instances.forEach(function(instance) { %>
+          <tr>
+            <td><%= instance.id %></td>
+            <td><%= instance.name %></td>
+            <td><%= instance.status %></td>
+            <td><%= instance.created_at %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </main>
+  <script src="/js/main.js"></script>
+</body>

@@ -1,0 +1,23 @@
+<%- include('../partials/head'); %>
+<title>White Label - LEAXOS</title>
+<body>
+  <%- include('../partials/navbar'); %>
+  <main class="container">
+    <%- include('../partials/flash'); %>
+    <h1>White Label Settings</h1>
+    <table>
+      <thead>
+        <tr><th>Key</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <% settings.forEach(function(setting) { %>
+          <tr>
+            <td><%= setting.key %></td>
+            <td><%= setting.value %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </main>
+  <script src="/js/main.js"></script>
+</body>
