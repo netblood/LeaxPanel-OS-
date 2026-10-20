@@ -17,6 +17,9 @@
 
 setlocal enabledelayedexpansion
 
+:: Change to the directory where this script lives (project root)
+cd /d "%~dp0"
+
 echo.
 echo ============================================================================
 echo   LeaxPanel(os) - Complete Cloud Operating System

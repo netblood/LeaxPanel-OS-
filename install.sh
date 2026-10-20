@@ -17,6 +17,10 @@
 
 set -e
 
+# Change to the directory where this script lives (project root)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 echo ""
 echo "============================================================"
 echo "  LeaxPanel(os) - Complete Cloud Operating System"
