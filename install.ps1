@@ -17,6 +17,24 @@
 $ErrorActionPreference = 'Continue'
 $ProgressPreference = 'SilentlyContinue'
 
+# When run via `iwr -useb | iex`, download project files to a temp directory
+if (-not $PSCommandPath -or -not (Test-Path $PSCommandPath)) {
+    Write-Host "[*] Downloading project files from GitHub..." -ForegroundColor Cyan
+    $InstallDir = [System.IO.Path]::GetTempPath() + "LeaxPanelInstall"
+    New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
+    Set-Location $InstallDir
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        git clone --depth 1 https://github.com/netblood/LeaxPanel-OS-.git .
+    } else {
+        Invoke-WebRequest -Uri "https://github.com/netblood/LeaxPanel-OS-/archive/refs/heads/main.zip" -OutFile "$InstallDir/master.zip"
+        Expand-Archive -Path "$InstallDir/master.zip" -DestinationPath $InstallDir -Force
+        $subDir = Get-ChildItem $InstallDir | Where-Object { $_.PSIsContainer } | Select-Object -First 1
+        Move-Item -Path "$($subDir.FullName)\*" -Destination $InstallDir -Force
+        Remove-Item -Path "$InstallDir/master.zip" -Force
+        Remove-Item -Path $subDir.FullName -Recurse -Force
+    }
+}
+
 Write-Host ""
 Write-Host "============================================================"
 Write-Host "  LeaxPanel(os) - Complete Cloud Operating System"

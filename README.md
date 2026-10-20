@@ -53,6 +53,18 @@ iwr -useb https://raw.githubusercontent.com/netblood/LeaxPanel-OS-/main/install.
 curl -fsSL https://raw.githubusercontent.com/netblood/LeaxPanel-OS-/main/install.sh | bash
 ```
 
+**What the Linux/macOS installer does automatically:**
+
+1. **Installs Node.js 22+** if missing (via NodeSource)
+2. **Installs Docker CE** if missing (via apt/yum/dnf/brew)
+3. **Opens firewall ports** (ufw/firewalld): 3000, 5432, 6379, 9000, 9001
+4. **Generates secure random passwords** for all services
+5. **Creates `.env`** with generated credentials
+6. **Creates `docker-compose.override.yml`** to wire passwords into Docker
+7. **Starts PostgreSQL, Redis, Minio** via Docker Compose
+8. **Runs database migrations and seeds**
+9. **Displays all service credentials** at the end
+
 Then start the server and open http://localhost:3000 in your browser:
 
 **Windows:**

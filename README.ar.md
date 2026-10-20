@@ -69,6 +69,18 @@ iwr -useb https://raw.githubusercontent.com/netblood/LeaxPanel-OS-/main/install.
 curl -fsSL https://raw.githubusercontent.com/netblood/LeaxPanel-OS-/main/install.sh | bash
 ```
 
+**ما يقوم به المثبت (Linux/macOS) تلقائياً:**
+
+1. **تثبيت Node.js 22+** إذا لم يكن موجوداً (عبر NodeSource)
+2. **تثبيت Docker CE** إذا لم يكن موجوداً (عبر apt/yum/dnf/brew)
+3. **فتح منافذ جدار الحماية** (ufw/firewalld): 3000، 5432، 6379، 9000، 9001
+4. **إنشاء كلمات مرور آمنة عشوائية** لكل الخدمات
+5. **إنشاء ملف `.env`** مع بيانات الاعتماد المنشأة
+6. **إنشاء ملف `docker-compose.override.yml`** لربط كلمات المرور بـ Docker
+7. **تشغيل PostgreSQL، Redis، Minio** عبر Docker Compose
+8. **تشغيل ترحيلات وبذور قاعدة البيانات**
+9. **طباعة جميع بيانات الاعتماد** في النهاية
+
 ثم ابدأ الخادم وافتح http://localhost:3000 في متصفحك:
 
 **Windows:**
