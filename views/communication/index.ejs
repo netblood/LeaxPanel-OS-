@@ -1,0 +1,25 @@
+<%- include('../partials/head'); %>
+<title>Communication - LEAXOS</title>
+<body>
+  <%- include('../partials/navbar'); %>
+  <main class="container">
+    <%- include('../partials/flash'); %>
+    <h1>Communication</h1>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Channel</th><th>Type</th><th>Created</th></tr>
+      </thead>
+      <tbody>
+        <% channels.forEach(function(channel) { %>
+          <tr>
+            <td><%= channel.id %></td>
+            <td><%= channel.name %></td>
+            <td><%= channel.type %></td>
+            <td><%= channel.created_at %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </main>
+  <script src="/js/main.js"></script>
+</body>

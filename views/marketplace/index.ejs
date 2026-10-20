@@ -1,0 +1,26 @@
+<%- include('../partials/head'); %>
+<title>Marketplace - LEAXOS</title>
+<body>
+  <%- include('../partials/navbar'); %>
+  <main class="container">
+    <%- include('../partials/flash'); %>
+    <h1>Marketplace</h1>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Item</th><th>Price</th><th>Status</th><th>Created</th></tr>
+      </thead>
+      <tbody>
+        <% items.forEach(function(item) { %>
+          <tr>
+            <td><%= item.id %></td>
+            <td><%= item.name %></td>
+            <td><%= item.price %></td>
+            <td><%= item.status %></td>
+            <td><%= item.created_at %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </main>
+  <script src="/js/main.js"></script>
+</body>

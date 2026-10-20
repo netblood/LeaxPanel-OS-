@@ -1,0 +1,25 @@
+<%- include('../partials/head'); %>
+<title>Storage - LEAXOS</title>
+<body>
+  <%- include('../partials/navbar'); %>
+  <main class="container">
+    <%- include('../partials/flash'); %>
+    <h1>Storage</h1>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Bucket</th><th>Region</th><th>Created</th></tr>
+      </thead>
+      <tbody>
+        <% buckets.forEach(function(bucket) { %>
+          <tr>
+            <td><%= bucket.id %></td>
+            <td><%= bucket.name %></td>
+            <td><%= bucket.region %></td>
+            <td><%= bucket.created_at %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </main>
+  <script src="/js/main.js"></script>
+</body>

@@ -1,0 +1,25 @@
+<%- include('../partials/head'); %>
+<title>Email - LEAXOS</title>
+<body>
+  <%- include('../partials/navbar'); %>
+  <main class="container">
+    <%- include('../partials/flash'); %>
+    <h1>Email</h1>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Account</th><th>Provider</th><th>Created</th></tr>
+      </thead>
+      <tbody>
+        <% accounts.forEach(function(account) { %>
+          <tr>
+            <td><%= account.id %></td>
+            <td><%= account.name %></td>
+            <td><%= account.provider %></td>
+            <td><%= account.created_at %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </main>
+  <script src="/js/main.js"></script>
+</body>

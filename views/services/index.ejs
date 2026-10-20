@@ -1,0 +1,26 @@
+<%- include('../partials/head'); %>
+<title>Services - LEAXOS</title>
+<body>
+  <%- include('../partials/navbar'); %>
+  <main class="container">
+    <%- include('../partials/flash'); %>
+    <h1>Services</h1>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Type</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <% services.forEach(function(service) { %>
+          <tr>
+            <td><%= service.id %></td>
+            <td><%= service.name %></td>
+            <td><%= service.type %></td>
+            <td><%= service.status %></td>
+            <td><a href="/services/<%= service.id %>/edit">Edit</a></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </main>
+  <script src="/js/main.js"></script>
+</body>

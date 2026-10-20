@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: leaxos_postgres
+    environment:
+      POSTGRES_DB: leaxos
+      POSTGRES_USER: leaxos
+      POSTGRES_PASSWORD: leaxos_password
+    volumes:
+      - leaxos_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leaxos -d leaxos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - leaxos_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: leaxos_redis
+    command: redis-server --requirepass leaxos_redis_password
+    volumes:
+      - leaxos_redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "leaxos_redis_password", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - leaxos_network
+
+  minio:
+    image: minio/minio:latest
+    container_name: leaxos_minio
+    environment:
+      MINIO_ROOT_USER: leaxos
+      MINIO_ROOT_PASSWORD: leaxos_password
+    volumes:
+      - leaxos_minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - leaxos_network
+
+  leaxos:
+    build: .
+    container_name: leaxos_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=leaxos
+      - DB_USER=leaxos
+      - DB_PASSWORD=leaxos_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=leaxos_redis_password
+      - SESSION_SECRET=${SESSION_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./backups:/app/backups
+    networks:
+      - leaxos_network
+    restart: unless-stopped
+
+volumes:
+  leaxos_postgres_data:
+  leaxos_redis_data:
+  leaxos_minio_data:
+
+networks:
+  leaxos_network:
+    driver: bridge
