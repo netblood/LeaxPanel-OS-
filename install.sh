@@ -21,15 +21,20 @@ set -e
 
 # Change to the directory where this script lives (project root)
 # When run via `curl | bash`, BASH_SOURCE[0] is not a real file,
-# so we download the project to a temp directory and work from there.
+# so we download the project to the current working directory.
 if [ -f "${BASH_SOURCE[0]}" ]; then
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 else
     echo "[*] Downloading project files from GitHub..."
-    INSTALL_DIR="$(mktemp -d)"
-    cd "$INSTALL_DIR"
+    SCRIPT_DIR="$(pwd)"
     if command -v git &> /dev/null; then
-        git clone --depth 1 https://github.com/netblood/LeaxPanel-OS-.git .
+        git clone --depth 1 https://github.com/netblood/LeaxPanel-OS-.git "$SCRIPT_DIR" 2>/dev/null || true
+        # If clone created a subdirectory, move into it
+        if [ -d "$SCRIPT_DIR/LeaxPanel-OS-" ]; then
+            cd "$SCRIPT_DIR/LeaxPanel-OS-"
+        elif [ -d "$SCRIPT_DIR/main" ]; then
+            cd "$SCRIPT_DIR/main"
+        fi
     else
         curl -fsSL https://github.com/netblood/LeaxPanel-OS-/archive/refs/heads/main.tar.gz | tar xz --strip-components=1
     fi
@@ -279,7 +284,6 @@ echo "    .env created with auto-generated credentials."
 # Create docker-compose.override.yml to wire credentials into Docker services
 echo "[6/9] Creating Docker Compose override with credentials..."
 cat > docker-compose.override.yml <<OVERRIDEEOF
-version: '3.8'
 services:
   postgres:
     environment:
@@ -306,21 +310,56 @@ echo "Dependencies installed successfully."
 # Start Docker services if available
 if [ "$DOCKER_AVAILABLE" -eq 1 ]; then
     echo "[8/9] Starting Docker services (PostgreSQL, Redis, Minio)..."
+    DOCKER_CMD=""
     if command -v docker compose &> /dev/null; then
-        docker compose up -d postgres redis minio
+        DOCKER_CMD="docker compose"
     elif command -v docker-compose &> /dev/null; then
-        docker-compose up -d postgres redis minio
+        DOCKER_CMD="docker-compose"
     else
         echo "WARNING: Neither 'docker compose' nor 'docker-compose' found."
         DOCKER_AVAILABLE=0
+    fi
+
+    if [ "$DOCKER_AVAILABLE" -eq 1 ]; then
+        # Pull images with retry
+        echo "    Pulling Docker images (may take a few minutes)..."
+        PULL_ATTEMPTS=0
+        until $DOCKER_CMD pull postgres:15-alpine && \
+              $DOCKER_CMD pull redis:7-alpine && \
+              $DOCKER_CMD pull minio/minio:RELEASE.2024-06-01T00-00-00Z; do
+            PULL_ATTEMPTS=$((PULL_ATTEMPTS + 1))
+            if [ "$PULL_ATTEMPTS" -ge 3 ]; then
+                echo "WARNING: Docker image pull failed after 3 attempts. Check your internet connection."
+                echo "         Docker services will be skipped. You can start them manually later."
+                DOCKER_AVAILABLE=0
+                break
+            fi
+            echo "    Retrying image pull in 10 seconds... (attempt $((PULL_ATTEMPTS + 1))/3)"
+            sleep 10
+        done
+    fi
+
+    if [ "$DOCKER_AVAILABLE" -eq 1 ]; then
+        # Start services with retry
+        START_ATTEMPTS=0
+        until $DOCKER_CMD up -d postgres redis minio; do
+            START_ATTEMPTS=$((START_ATTEMPTS + 1))
+            if [ "$START_ATTEMPTS" -ge 3 ]; then
+                echo "WARNING: Docker compose up failed after 3 attempts."
+                echo "         Docker services will be skipped. You can start them manually later."
+                DOCKER_AVAILABLE=0
+                break
+            fi
+            echo "    Retrying Docker compose up in 10 seconds... (attempt $((START_ATTEMPTS + 1))/3)"
+            sleep 10
+        done
     fi
 
     # Wait for PostgreSQL to be ready
     if [ "$DOCKER_AVAILABLE" -eq 1 ]; then
         echo "[9/9] Waiting for PostgreSQL to be ready..."
         ATTEMPTS=0
-        until docker compose exec -T postgres pg_isready -U leaxos -d leaxos &> /dev/null || \
-              docker-compose exec -T postgres pg_isready -U leaxos -d leaxos &> /dev/null; do
+        until $DOCKER_CMD exec -T postgres pg_isready -U leaxos -d leaxos &> /dev/null; do
             ATTEMPTS=$((ATTEMPTS + 1))
             if [ "$ATTEMPTS" -ge 60 ]; then
                 echo "WARNING: PostgreSQL did not become ready in time. Migrations may fail."

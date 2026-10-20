@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 :: ============================================================================
 :: LeaxPanel(os) - Windows Installer (Batch)
 :: ============================================================================
@@ -160,7 +160,6 @@ echo    .env created with auto-generated credentials.
 :: Create docker-compose.override.yml to wire credentials into Docker services
 echo [5/9] Creating Docker Compose override with credentials...
 (
-    echo version: '3.8'
     echo services:
     echo   postgres:
     echo     environment:
@@ -285,6 +284,9 @@ echo.
 echo   Save these credentials! They will not be shown again.
 echo.
 pause
+
+
+
 
 
 

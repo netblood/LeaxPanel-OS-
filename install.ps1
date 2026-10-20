@@ -182,7 +182,7 @@ Write-Host "    .env created with auto-generated credentials." -ForegroundColor 
 # Create docker-compose.override.yml to wire credentials into Docker services
 Write-Host "[5/9] Creating Docker Compose override with credentials..."
 $overrideContent = @"
-version: '3.8'
+# version: '3.8' removed - obsolete attribute
 services:
   postgres:
     environment:
@@ -308,3 +308,4 @@ Write-Host "All credentials have been saved to .env"
 Write-Host "Default admin account: owner@leaxos.local"
 Write-Host ""
 pause
+
