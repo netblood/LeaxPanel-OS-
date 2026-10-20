@@ -39,13 +39,44 @@ LeaxPanel(os) is a complete cloud operating system platform built with pure Java
 
 ## Quick Start
 
-### Windows
+### One-command install (from GitHub)
+
+Download and run the installer directly from GitHub in a single command:
+
+**Windows (PowerShell, run as Administrator):**
+```powershell
+iwr -useb https://raw.githubusercontent.com/netblood/LeaxPanel-OS-/main/install.ps1 | iex
+```
+
+**Linux / macOS:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/netblood/LeaxPanel-OS-/main/install.sh | bash
+```
+
+Then start the server and open http://localhost:3000 in your browser:
+
+**Windows:**
+```powershell
+.\run.bat
+# or
+node server.js
+```
+
+**Linux / macOS:**
+```bash
+chmod +x run.sh
+./run.sh
+# or
+node server.js
+```
+
+### Windows (manual)
 
 1. Double-click `install.bat` to install dependencies
 2. Double-click `run.bat` to start the server
 3. Open http://localhost:3000 in your browser
 
-### Linux / macOS
+### Linux / macOS (manual)
 
 ```bash
 chmod +x install.sh run.sh
@@ -56,6 +87,8 @@ chmod +x install.sh run.sh
 Then open http://localhost:3000 in your browser.
 
 ## Manual Installation
+
+Clone the repository, then:
 
 ```bash
 # Install dependencies
@@ -68,6 +101,8 @@ cp .env.example .env
 # Start the server
 node server.js
 ```
+
+Repository: https://github.com/netblood/LeaxPanel-OS-
 
 ## Database Setup (Production)
 
