@@ -322,12 +322,13 @@ if [ "$DOCKER_AVAILABLE" -eq 1 ]; then
     fi
 
     if [ "$DOCKER_AVAILABLE" -eq 1 ]; then
-        # Pull images with retry
+        # Pull images with retry (use plain docker pull for image names,
+        # docker compose pull expects service names not image names)
         echo "    Pulling Docker images (may take a few minutes)..."
         PULL_ATTEMPTS=0
-        until $DOCKER_CMD pull postgres:15-alpine && \
-              $DOCKER_CMD pull redis:7-alpine && \
-              $DOCKER_CMD pull minio/minio:RELEASE.2024-06-01T00-00-00Z; do
+        until docker pull postgres:15-alpine && \
+              docker pull redis:7-alpine && \
+              docker pull pgsty/minio:latest; do
             PULL_ATTEMPTS=$((PULL_ATTEMPTS + 1))
             if [ "$PULL_ATTEMPTS" -ge 3 ]; then
                 echo "WARNING: Docker image pull failed after 3 attempts. Check your internet connection."

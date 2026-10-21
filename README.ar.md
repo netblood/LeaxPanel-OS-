@@ -249,6 +249,54 @@ npm run pm2
 2. تحقق من `REDIS_URL` في `.env`
 3. سيعمل الخادم في وضع متدهور بدون Redis (تستخدم الجلسات تخزين الذاكرة)
 
+## الإزالة الكاملة / إزالة التثبيت
+
+لإزالة LeaxPanel(os) وجميع بياناته بالكامل من الخادم الخاص بك:
+
+### Linux / macOS (إزالة كاملة)
+
+```bash
+# إيقاف وإزالة حاويات Docker
+docker compose down -v 2>/dev/null || docker-compose down -v 2>/dev/null || true
+
+# إزالة صور Docker المستخدمة بواسطة LeaxPanel
+docker rmi postgres:15-alpine redis:7-alpine pgsty/minio:latest 2>/dev/null || true
+
+# إزالة دليل المشروع
+cd ~
+rm -rf LeaxPanel-OS- LeaxPanel(os) LeaxPanel
+
+# إزالة بيانات الاعتماد والتكوين المنشأة
+rm -f .env docker-compose.override.yml
+
+# إزالة منافذ جدار الحماية التي فتحها المثبت (اختياري)
+ufw delete allow 3000/tcp 2>/dev/null || true
+ufw delete allow 5432/tcp 2>/dev/null || true
+ufw delete allow 6379/tcp 2>/dev/null || true
+ufw delete allow 9000/tcp 2>/dev/null || true
+ufw delete allow 9001/tcp 2>/dev/null || true
+
+echo "تم إزالة LeaxPanel(os) بالكامل."
+```
+
+### Windows (إزالة كاملة)
+
+```powershell
+# إيقاف وإزالة حاويات Docker
+docker compose down -v 2>$null || docker-compose down -v 2>$null || $true
+
+# إزالة دليل المشروع
+Remove-Item -Recurse -Force "$HOME\LeaxPanel-OS-" -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force "$HOME\LeaxPanel(os)" -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force "$HOME\LeaxPanel" -ErrorAction SilentlyContinue
+
+# إزالة بيانات الاعتماد والتكوين المنشأة
+Remove-Item -Force "$HOME\.env" -ErrorAction SilentlyContinue
+Remove-Item -Force "$HOME\docker-compose.override.yml" -ErrorAction SilentlyContinue
+
+Write-Host "تم إزالة LeaxPanel(os) بالكامل."
+```
+
 ## الترخيص
 
 رخصة MIT

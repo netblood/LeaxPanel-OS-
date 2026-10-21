@@ -190,12 +190,28 @@ echo Dependencies installed successfully.
 
 :: Start Docker services if available
 if %DOCKER_AVAILABLE% equ 1 (
-    echo [7/9] Starting Docker services (PostgreSQL, Redis, Minio)...
-    docker compose up -d postgres redis minio
+    echo [7/9] Starting Docker services (PostgreSQL, Redis, Minio, LeaxApp)...
+    set /a DOCKER_RETRY=0
+    :docker_retry
+    docker compose up -d
     if %errorlevel% neq 0 (
-        echo WARNING: docker compose up failed. Trying docker-compose...
-        docker-compose up -d postgres redis minio
+        set /a DOCKER_RETRY+=1
+        if %DOCKER_RETRY% leq 3 (
+            echo WARNING: docker compose up failed. Retrying in 10 seconds... (attempt %DOCKER_RETRY%/3)
+            timeout /t 10 >nul
+            goto docker_retry
+        )
+        echo WARNING: docker compose up failed after 3 attempts. Trying docker-compose...
+        set /a DOCKER_RETRY=0
+        :docker_compose_retry
+        docker-compose up -d
         if %errorlevel% neq 0 (
+            set /a DOCKER_RETRY+=1
+            if %DOCKER_RETRY% leq 3 (
+                echo WARNING: docker-compose up failed. Retrying in 10 seconds... (attempt %DOCKER_RETRY%/3)
+                timeout /t 10 >nul
+                goto docker_compose_retry
+            )
             echo WARNING: Could not start Docker services. You may need to start them manually.
         )
     )

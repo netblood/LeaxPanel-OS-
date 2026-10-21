@@ -253,6 +253,54 @@ See `nginx.conf` for a production-ready Nginx configuration.
 2. Verify `REDIS_URL` in `.env`
 3. The server will run in degraded mode without Redis (sessions use memory store)
 
+## Complete Removal / Uninstall
+
+To completely remove LeaxPanel(os) and all its data from your server:
+
+### Linux / macOS (full removal)
+
+```bash
+# Stop and remove Docker containers
+docker compose down -v 2>/dev/null || docker-compose down -v 2>/dev/null || true
+
+# Remove Docker images used by LeaxPanel
+docker rmi postgres:15-alpine redis:7-alpine pgsty/minio:latest 2>/dev/null || true
+
+# Remove the project directory
+cd ~
+rm -rf LeaxPanel-OS- LeaxPanel(os) LeaxPanel
+
+# Remove generated credentials and config
+rm -f .env docker-compose.override.yml
+
+# Remove firewall ports opened by installer (optional)
+ufw delete allow 3000/tcp 2>/dev/null || true
+ufw delete allow 5432/tcp 2>/dev/null || true
+ufw delete allow 6379/tcp 2>/dev/null || true
+ufw delete allow 9000/tcp 2>/dev/null || true
+ufw delete allow 9001/tcp 2>/dev/null || true
+
+echo "LeaxPanel(os) has been completely removed."
+```
+
+### Windows (full removal)
+
+```powershell
+# Stop and remove Docker containers
+docker compose down -v 2>$null || docker-compose down -v 2>$null || $true
+
+# Remove the project directory
+Remove-Item -Recurse -Force "$HOME\LeaxPanel-OS-" -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force "$HOME\LeaxPanel(os)" -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force "$HOME\LeaxPanel" -ErrorAction SilentlyContinue
+
+# Remove generated credentials and config
+Remove-Item -Force "$HOME\.env" -ErrorAction SilentlyContinue
+Remove-Item -Force "$HOME\docker-compose.override.yml" -ErrorAction SilentlyContinue
+
+Write-Host "LeaxPanel(os) has been completely removed."
+```
+
 ## License
 
 MIT License
