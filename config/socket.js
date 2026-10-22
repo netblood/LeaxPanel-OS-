@@ -1,4 +1,7 @@
 const jwt = require('jsonwebtoken');
+const db = require('./db');
+const logger = require('../utils/logger');
+const terminalService = require('../services/terminalService');
 
 function initSocket(io) {
   io.use((socket, next) => {
@@ -26,8 +29,24 @@ function initSocket(io) {
       if (room) socket.leave(room);
     });
 
+    // Terminal events - attach to terminal service
+    socket.on('terminal:join', (data) => {
+      try {
+        const { sessionId } = data;
+        if (!sessionId || !socket.userId) return;
+        
+        // Attach socket to terminal session
+        const attached = terminalService.attachSocket(sessionId, socket);
+        if (attached) {
+          socket.join(`terminal:${sessionId}`);
+        }
+      } catch (err) {
+        logger.error('Terminal join error:', err);
+      }
+    });
+
     socket.on('disconnect', () => {
-      // Cleanup handled automatically
+      // Cleanup handled by terminal service
     });
   });
 }

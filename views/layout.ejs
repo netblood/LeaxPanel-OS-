@@ -1,25 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <%- include('partials/head'); %>
-  <title><%= title || 'LEAXOS' %></title>
 </head>
-<body class="<%= bodyClass || '' %>">
-  <%- include('partials/navbar'); %>
-  <main class="container">
-    <% if (success && success.length) { %>
-      <div class="alert alert-success"><%= success.join('') %></div>
+<body class="app-body <%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
+  <% if (user) { %>
+    <div class="app-shell">
+      <%- include('partials/sidebar'); %>
+      <div class="app-main">
+        <%- include('partials/topbar'); %>
+        <main class="app-content">
+          <%- include('partials/flash'); %>
+          <%- body %>
+        </main>
+        <%- include('partials/footer'); %>
+      </div>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+
+      <!-- Command Palette Modal -->
+      <div class="command-palette-overlay" id="commandPaletteOverlay" hidden></div>
+      <div class="command-palette" id="commandPalette" hidden role="dialog" aria-modal="true" aria-label="Command Palette">
+        <div class="command-palette-header">
+          <svg class="command-palette-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="search" id="commandPaletteInput" placeholder="Type a command or search..." autocomplete="off" aria-label="Command palette search" spellcheck="false">
+          <kbd class="command-palette-close">Esc</kbd>
+        </div>
+        <div class="command-palette-body">
+          <div class="command-palette-sections" id="commandPaletteSections"></div>
+          <div class="command-palette-empty" id="commandPaletteEmpty" hidden>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <p>No commands found</p>
+          </div>
+        </div>
+        <div class="command-palette-footer">
+          <kbd>↑↓</kbd> Navigate &nbsp; <kbd>Enter</kbd> Execute &nbsp; <kbd>Esc</kbd> Close
+        </div>
+      </div>
+    <% } else { %>
+      <main class="app-content app-content-public">
+        <%- include('partials/flash'); %>
+        <%- body %>
+      </main>
     <% } %>
-    <% if (error && error.length) { %>
-      <div class="alert alert-danger"><%= error.join('') %></div>
-    <% } %>
-    <% if (errors && errors.length) { %>
-      <div class="alert alert-danger"><%= errors.join('') %></div>
-    <% } %>
-    <%- body %>
-  </main>
-  <%- include('partials/footer'); %>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/main.js"></script>
+  <script src="/js/main.js?v=<%= typeof appVersion !== 'undefined' ? appVersion : '1.0.0' %>"></script>
 </body>
 </html>

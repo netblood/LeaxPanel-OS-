@@ -1,13 +1,14 @@
 CREATE TABLE IF NOT EXISTS bots (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  type VARCHAR(100) NOT NULL,
-  status VARCHAR(50) DEFAULT 'inactive',
-  config JSONB DEFAULT '{}',
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL,
+  status TEXT DEFAULT 'inactive',
+  config TEXT DEFAULT '{}',
   user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_bots_type ON bots(type);
 CREATE INDEX IF NOT EXISTS idx_bots_status ON bots(status);
+

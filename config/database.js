@@ -1,22 +1,13 @@
-const { Pool } = require('pg');
+// Database layer using better-sqlite3 (no PostgreSQL required)
+// Single SQLite instance at ./data/leaxos.db
+const { query, get, run, db } = require('./db');
 
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'leaxos',
-  user: process.env.DB_USER || 'leaxos',
-  password: process.env.DB_PASSWORD || 'leaxos',
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-});
-
-pool.on('connect', () => {
-  // Connection established
-});
-
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-});
+const pool = {
+  query,
+  get,
+  run,
+  db,
+  end: () => {}
+};
 
 module.exports = pool;

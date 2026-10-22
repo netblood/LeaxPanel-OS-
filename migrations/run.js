@@ -1,59 +1,71 @@
-const { Pool } = require('pg');
+// LeaxPanel migration runner.
+// Applies every ./migrations/NNN_*.sql file in order, exactly once.
+// Uses db.exec() so multi-statement SQL files (with triggers/indices) work.
 const fs = require('fs');
 const path = require('path');
+const db = require('../config/db');
 
-require('dotenv').config();
+const migrationsDir = __dirname;
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || `postgresql://${process.env.DB_USER || 'leaxos'}:${process.env.DB_PASSWORD || 'leaxos_password'}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME || 'leaxos'}`,
-});
+function getMigrationFiles() {
+  return fs.readdirSync(migrationsDir)
+    .filter(f => f.endsWith('.sql'))
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+}
 
-async function runMigrations() {
-  const client = await pool.connect();
-  try {
-    // Create migrations tracking table
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS schema_migrations (
-        version VARCHAR(255) PRIMARY KEY,
-        applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+function runMigrations() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+      version INTEGER PRIMARY KEY,
+      filename TEXT,
+      applied_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
 
-    // Get already applied migrations
-    const { rows: applied } = await client.query('SELECT version FROM schema_migrations');
-    const appliedVersions = new Set(applied.map(r => r.version));
+  const appliedRows = db.all('SELECT version FROM schema_migrations');
+  const applied = new Set(appliedRows.map(r => r.version));
 
-    // Get migration files sorted
-    const migrationDir = path.join(__dirname);
-    const files = fs.readdirSync(migrationDir)
-      .filter(f => f.endsWith('.sql') && f !== 'run.js')
-      .sort();
+  const files = getMigrationFiles();
+  let pending = 0;
 
-    for (const file of files) {
-      if (appliedVersions.has(file)) continue;
+  for (const file of files) {
+    const versionMatch = file.match(/^(\d+)_/);
+    if (!versionMatch) continue;
+    const version = parseInt(versionMatch[1], 10);
 
-      const sql = fs.readFileSync(path.join(migrationDir, file), 'utf8');
-      await client.query('BEGIN');
-      try {
-        await client.query(sql);
-        await client.query('INSERT INTO schema_migrations (version) VALUES ($1)', [file]);
-        await client.query('COMMIT');
-        console.log(`Applied migration: ${file}`);
-      } catch (err) {
-        await client.query('ROLLBACK');
-        console.error(`Failed migration: ${file}`, err.message);
-        throw err;
-      }
+    if (applied.has(version)) continue;
+
+    const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
+
+    try {
+      db.exec(sql);
+    } catch (err) {
+      console.error(`[migrate] Failed ${file}: ${err.message}`);
+      throw err;
     }
 
-    console.log('All migrations completed successfully.');
-  } finally {
-    client.release();
-    await pool.end();
+    db.run(
+      'INSERT INTO schema_migrations (version, filename, applied_at) VALUES (?, ?, datetime(\'now\'))',
+      [version, file]
+    );
+    pending++;
+    console.log(`[migrate] Applied ${file}`);
+  }
+
+  if (pending === 0) {
+    console.log('[migrate] No pending migrations');
+  } else {
+    console.log(`[migrate] Applied ${pending} migration(s)`);
   }
 }
 
-runMigrations().catch(err => {
-  console.error('Migration failed:', err);
-  process.exit(1);
-});
+if (require.main === module) {
+  try {
+    runMigrations();
+  } catch (err) {
+    console.error('[migrate] Aborted:', err.message);
+    process.exit(1);
+  }
+}
+
+module.exports = { runMigrations };

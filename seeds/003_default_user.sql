@@ -1,5 +1,5 @@
-INSERT INTO users (name, email, password, role, is_active, email_verified) VALUES
-  ('Owner', 'owner@leaxos.local', '$2b$10$rFZ8vX8vX8vX8vX8vX8vXO', 'owner', TRUE, TRUE)
+INSERT INTO users (name, email, password_hash, role, is_active, email_verified) VALUES
+  ('Owner', 'owner@leaxos.local', '$2a$12$1/JJglEfsQQ/6fo61EV.ie.WvmoaH.D4KfGbUaLtpw4BFx1j85YKm', 'owner', 1, 1)
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO user_roles (user_id, role_id)

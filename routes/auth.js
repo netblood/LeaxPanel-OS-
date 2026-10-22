@@ -1,145 +1,180 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const speakeasy = require('speakeasy');
 const QRCode = require('qr-image');
-const pool = require('../config/database');
+const db = require('../config/db');
 const { requireGuest, requireAuth } = require('../middleware/auth');
 const { handleValidationErrors, registerSchema, loginSchema } = require('../middleware/validation');
+const { authLimiter } = require('../config/security');
+const panelSettings = require('../services/panelSettingsService');
+const discordService = require('../services/discordService');
 const logger = require('../utils/logger');
 
+/* ------------------------------------------------------------------ login */
 router.get('/login', requireGuest, (req, res) => {
-  res.render('auth/login', { title: 'Login - LEAXOS' });
+  res.render('auth/login', {
+    title: 'Sign in',
+    layout: false,
+    user: null,
+    registrationEnabled: panelSettings.isRegistrationEnabled()
+  });
 });
 
-router.post('/login', requireGuest, loginSchema, handleValidationErrors, async (req, res) => {
+router.post('/login', requireGuest, authLimiter, loginSchema, handleValidationErrors, async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (result.rows.length === 0) {
-      req.flash('error', 'Invalid credentials');
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const row = db.get('SELECT * FROM users WHERE lower(email) = ?', [email]);
+
+    if (!row || !(await bcrypt.compare(req.body.password || '', row.password_hash))) {
+      req.flash('error', 'Invalid email or password.');
+      discordService.logAuthEvent({ email }, 'failed_login', req.ip).catch(() => {});
       return res.redirect('/login');
     }
-    const user = result.rows[0];
-    const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) {
-      req.flash('error', 'Invalid credentials');
+
+    if (!row.is_active) {
+      req.flash('error', 'This account has been deactivated. Contact your administrator.');
       return res.redirect('/login');
     }
-    if (user.totp_secret) {
-      req.session.pending2fa = { userId: user.id };
+
+    if (row.totp_secret) {
+      req.session.pending2fa = { userId: row.id };
       return res.redirect('/2fa/verify');
     }
-    req.session.user = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role
-    };
-    req.flash('success', 'Welcome back!');
-    return res.redirect('/dashboard');
+
+    req.session.user = { id: row.id, email: row.email, name: row.name, role: row.role };
+    req.flash('success', `Welcome back, ${row.name}.`);
+    discordService.logAuthEvent(row, 'login', req.ip).catch(() => {});
+
+    // express-session writes the session and sets the cookie on the response
+    // automatically. Calling req.session.save() here would flush the headers
+    // before the cookie could be attached, so the session would be lost.
+    res.redirect('/dashboard');
   } catch (err) {
     logger.error('Login error:', err);
-    req.flash('error', 'Login failed');
+    req.flash('error', 'Login failed. Please try again.');
     res.redirect('/login');
   }
 });
 
+/* --------------------------------------------------------------- register */
 router.get('/register', requireGuest, (req, res) => {
-  res.render('auth/register', { title: 'Register - LEAXOS' });
+  if (!panelSettings.isRegistrationEnabled()) {
+    req.flash('error', 'Public registration is disabled on this panel.');
+    return res.redirect('/login');
+  }
+  res.render('auth/register', {
+    title: 'Create account',
+    layout: false,
+    user: null,
+    registrationEnabled: true
+  });
 });
 
-router.post('/register', requireGuest, registerSchema, handleValidationErrors, async (req, res) => {
+router.post('/register', requireGuest, authLimiter, registerSchema, handleValidationErrors, async (req, res) => {
+  if (!panelSettings.isRegistrationEnabled()) {
+    req.flash('error', 'Public registration is disabled on this panel.');
+    return res.redirect('/login');
+  }
   try {
-    const { name, email, password, role = 'user' } = req.body;
-    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
-    if (existing.rows.length > 0) {
-      req.flash('error', 'Email already registered');
+    const name = String(req.body.name || '').trim();
+    const email = String(req.body.email || '').trim().toLowerCase();
+
+    const existing = db.get('SELECT id FROM users WHERE lower(email) = ?', [email]);
+    if (existing) {
+      req.flash('error', 'An account with that email already exists.');
       return res.redirect('/register');
     }
-    const passwordHash = await bcrypt.hash(password, 12);
-    const result = await pool.query(
-      'INSERT INTO users (name, email, password_hash, role, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id, name, email, role',
-      [name, email, passwordHash, role]
+
+    const passwordHash = await bcrypt.hash(req.body.password, 12);
+    const result = db.run(
+      "INSERT INTO users (name, email, password_hash, role, is_active, created_at) VALUES (?, ?, ?, 'user', 1, datetime('now'))",
+      [name, email, passwordHash]
     );
-    const user = result.rows[0];
-    req.session.user = { id: user.id, email: user.email, name: user.name, role: user.role };
-    req.flash('success', 'Account created successfully');
+
+    const user = db.get('SELECT id, name, email, role FROM users WHERE id = ?', [result.lastInsertRowid]);
+    req.session.user = user;
+    req.flash('success', 'Account created successfully.');
+    discordService.logAuthEvent(user, 'register', req.ip).catch(() => {});
     res.redirect('/dashboard');
   } catch (err) {
     logger.error('Register error:', err);
-    req.flash('error', 'Registration failed');
+    req.flash('error', 'Registration failed. Please try again.');
     res.redirect('/register');
   }
 });
 
-router.get('/logout', requireAuth, (req, res) => {
+/* ----------------------------------------------------------------- logout */
+router.post('/logout', (req, res) => {
+  const user = req.session.user;
+  if (!user) return res.redirect('/login');
   req.session.destroy(() => {
     res.clearCookie('leaxos.sid');
+    discordService.logAuthEvent(user, 'logout', req.ip).catch(() => {});
     res.redirect('/login');
   });
 });
 
-router.get('/2fa/setup', requireAuth, async (req, res) => {
+router.get('/logout', (req, res) => res.redirect('/dashboard'));
+
+/* -------------------------------------------------------------------- 2FA */
+router.get('/2fa/setup', requireAuth, (req, res) => {
   try {
-    const userId = req.session.user.id;
-    const result = await pool.query('SELECT totp_secret FROM users WHERE id = $1', [userId]);
-    const user = result.rows[0];
-    if (user.totp_secret) {
-      return res.redirect('/dashboard');
-    }
-    const secret = speakeasy.generateSecret({ name: `LEAXOS (${req.session.user.email})` });
-    await pool.query('UPDATE users SET totp_secret = $1 WHERE id = $2', [secret.base32, userId]);
-    const qrUrl = speakeasy.otpauthURL({
+    const row = db.get('SELECT totp_secret FROM users WHERE id = ?', [req.session.user.id]);
+    if (row && row.totp_secret) return res.redirect('/profile');
+
+    const secret = speakeasy.generateSecret({ name: `LeaxPanel (${req.session.user.email})` });
+    db.run('UPDATE users SET totp_secret = ? WHERE id = ?', [secret.base32, req.session.user.id]);
+
+    const otpUrl = speakeasy.otpauthURL({
       secret: secret.base32,
-      label: `LEAXOS:${req.session.user.email}`,
-      issuer: 'LEAXOS',
+      label: `LeaxPanel:${req.session.user.email}`,
+      issuer: 'LeaxPanel',
       encoding: 'base32'
     });
-    const qrImage = QRCode.image(qrUrl, { type: 'png' });
-    res.set('Content-Type', 'image/png');
+
+    const qrImage = QRCode.image(otpUrl, { type: 'png', margin: 1, width: 220 });
     qrImage.pipe(res);
   } catch (err) {
     logger.error('2FA setup error:', err);
-    req.flash('error', '2FA setup failed');
-    res.redirect('/dashboard');
+    req.flash('error', 'Could not generate the 2FA QR code.');
+    res.redirect('/profile');
   }
 });
 
 router.get('/2fa/verify', requireGuest, (req, res) => {
   if (!req.session.pending2fa) return res.redirect('/login');
-  res.render('auth/2fa-verify', { title: '2FA Verification - LEAXOS' });
+  res.render('auth/2fa-verify', { title: 'Two-factor verification', layout: false, user: null });
 });
 
-router.post('/2fa/verify', requireGuest, async (req, res) => {
+router.post('/2fa/verify', requireGuest, authLimiter, async (req, res) => {
   try {
-    const { token } = req.body;
     const { userId } = req.session.pending2fa || {};
     if (!userId) return res.redirect('/login');
-    const result = await pool.query('SELECT totp_secret FROM users WHERE id = $1', [userId]);
-    const user = result.rows[0];
-    if (!user.totp_secret) {
-      req.flash('error', '2FA not configured');
+
+    const row = db.get('SELECT * FROM users WHERE id = ?', [userId]);
+    if (!row || !row.totp_secret) {
+      req.flash('error', 'Two-factor authentication is not configured for this account.');
       return res.redirect('/login');
     }
-    const verified = speakeasy.totp.verify({
-      secret: user.totp_secret,
-      encoding: 'base32',
-      token
-    });
+
+    const token = String(req.body.token || '').replace(/\s+/g, '');
+    const verified = speakeasy.totp.verify({ secret: row.totp_secret, encoding: 'base32', token });
+
     if (!verified) {
-      req.flash('error', 'Invalid 2FA code');
+      req.flash('error', 'Invalid verification code.');
       return res.redirect('/2fa/verify');
     }
+
     delete req.session.pending2fa;
-    const userResult = await pool.query('SELECT id, email, name, role FROM users WHERE id = $1', [userId]);
-    req.session.user = userResult.rows[0];
-    req.flash('success', 'Welcome back!');
+    req.session.user = { id: row.id, email: row.email, name: row.name, role: row.role };
+    db.run('UPDATE users SET two_factor_enabled = 1 WHERE id = ?', [row.id]);
+    req.flash('success', 'Welcome back.');
+    discordService.logAuthEvent(row, '2fa_verify', req.ip).catch(() => {});
     res.redirect('/dashboard');
   } catch (err) {
     logger.error('2FA verify error:', err);
-    req.flash('error', '2FA verification failed');
+    req.flash('error', 'Verification failed. Please try again.');
     res.redirect('/2fa/verify');
   }
 });

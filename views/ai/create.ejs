@@ -1,25 +1,18 @@
-<%- include('../partials/head'); %>
-<title>Create AI Agent - LEAXOS</title>
-<body>
-  <%- include('../partials/navbar'); %>
-  <main class="container">
-    <%- include('../partials/flash'); %>
-    <h1>Create AI Agent</h1>
-    <form action="/ai/create" method="POST">
-      <div class="form-group">
-        <label>Name</label>
-        <input type="text" name="name" required>
-      </div>
-      <div class="form-group">
-        <label>Type</label>
-        <input type="text" name="type" required>
-      </div>
-      <div class="form-group">
-        <label>Model</label>
-        <input type="text" name="model" required>
-      </div>
-      <button type="submit" class="btn btn-primary">Create</button>
-    </form>
-  </main>
-  <script src="/js/main.js"></script>
-</body>
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><%= pageTitle %></h1>
+    <p class="page-subtitle">Add a new ai agent to your panel.</p>
+  </div>
+  <div class="page-actions">
+    <a href="/ai" class="btn btn-ghost">Back to list</a>
+  </div>
+</div>
+
+<%- include('../partials/resourceForm', {
+  fields: fields,
+  values: values,
+  action: formAction,
+  submitLabel: 'Create AI Agent',
+  cancelHref: '/ai',
+  module: module
+}); %>

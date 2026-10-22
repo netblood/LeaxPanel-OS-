@@ -1,0 +1,76 @@
+// Centralised security configuration.
+const rateLimit = require('express-rate-limit');
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+const generalLimiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
+  max: parseInt(process.env.RATE_LIMIT_MAX || '300', 10),
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => isProduction === false && process.env.RATE_LIMIT_MAX === '300'
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  message: { error: 'Too many attempts. Please try again later.' }
+});
+
+const writeLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const helmetOptions = {
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+      imgSrc: ["'self'", 'data:', 'blob:'],
+      connectSrc: ["'self'", 'ws:', 'wss:'],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'self'"]
+    }
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: 'same-site' },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
+};
+
+function corsOptions() {
+  if (isProduction) {
+    return {
+      origin: process.env.ALLOWED_ORIGINS
+        ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+        : false,
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+    };
+  }
+  return { origin: true, credentials: true };
+}
+
+module.exports = {
+  generalLimiter,
+  apiLimiter,
+  authLimiter,
+  writeLimiter,
+  helmetOptions,
+  corsOptions,
+  isProduction
+};
