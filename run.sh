@@ -10,7 +10,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-BOLD=$'\033[1m'; CYAN=$'\033[36m'; GREEN=$'\033[32m'; RESET=$'\033[0m'
+BOLD=$'\033[1m'; CYAN=$'\033[36m'; GREEN=$'\033[32m'; YELLOW=$'\033[33m'; RESET=$'\033[0m'
 
 if ! command -v node >/dev/null 2>&1; then
   echo -e "${CYAN}LeaxPanel${RESET}: Node.js is required but was not found in your PATH."
@@ -40,13 +40,22 @@ if command -v pm2 >/dev/null 2>&1; then
   fi
   pm2 save >/dev/null 2>&1 || true
   echo -e "${GREEN}LeaxPanel is running under PM2${RESET}"
-  echo "  Dashboard:  http://localhost:${PORT}"
-  echo "  Logs:       pm2 logs leaxpanel"
-  echo "  Stop:       pm2 stop leaxpanel"
 else
   echo -e "${CYAN}LeaxPanel${RESET}: starting in the foreground (PM2 not found)..."
-  echo "  Dashboard:  http://localhost:${PORT}"
-  echo "  Health:     http://localhost:${PORT}/health"
-  echo
   exec node server.js
 fi
+
+# ------------------------------------------------------- access information --
+EXTERNAL_IP=""
+if command -v curl >/dev/null 2>&1; then
+  EXTERNAL_IP="$(curl -s --max-time 5 https://api.ipify.org 2>/dev/null || curl -s --max-time 5 https://ifconfig.me 2>/dev/null || true)"
+fi
+if [ -z "$EXTERNAL_IP" ]; then
+  EXTERNAL_IP="<your-server-ip>"
+fi
+
+echo
+echo "  Dashboard:  http://localhost:${PORT}"
+echo "  External:   http://${EXTERNAL_IP}:${PORT}"
+echo "  Logs:       pm2 logs leaxpanel"
+echo "  Stop:       pm2 stop leaxpanel"
