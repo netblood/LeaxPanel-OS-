@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const express = require('express');
-const http = require('http');
+const os = require('os');
 const { Server } = require('socket.io');
 const path = require('path');
 const session = require('express-session');
@@ -54,14 +54,6 @@ const { timeAgo } = require('./utils/helpers');
 const logger = require('./utils/logger');
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: process.env.NODE_ENV === 'production' ? false : '*',
-    methods: ['GET', 'POST']
-  },
-  transports: ['websocket', 'polling']
-});
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const APP_VERSION = require('./package.json').version;
@@ -72,7 +64,6 @@ app.set('view engine', 'ejs');
 app.set('layout', 'layout');
 app.set('layout extractScripts', false);
 app.set('layout extractStyles', false);
-app.set('io', io);
 
 /* --------------------------------------------------------------- security */
 app.use(require('helmet')(security.helmetOptions));
@@ -255,19 +246,49 @@ app.use((err, req, res, next) => {
 });
 
 /* ------------------------------------------------------------------ startup */
-initSocket(io);
+let currentServer = null;
+let currentIo = null;
 
-monitoringService.start();
-autoHealingService.start();
-backupService.start();
+function createServerInstance() {
+  const srv = http.createServer(app);
+  const ioInstance = new Server(srv, {
+    cors: {
+      origin: process.env.NODE_ENV === 'production' ? false : '*',
+      methods: ['GET', 'POST']
+    },
+    transports: ['websocket', 'polling']
+  });
+  app.set('io', ioInstance);
+  initSocket(ioInstance);
+  return { server: srv, io: ioInstance };
+}
 
-discordService.logSystemEvent('Server Started', {
-  port: PORT,
-  environment: process.env.NODE_ENV || 'development',
-  version: APP_VERSION
-}).catch(() => {});
+/**
+ * Auto-detect the best host address to bind to.
+ * Prefers explicit HOST env var, then falls back to 0.0.0.0 so the panel
+ * is reachable from external devices on Ubuntu / cloud VMs.
+ */
+function resolveHost() {
+  const explicitHost = process.env.HOST;
+  if (explicitHost && explicitHost !== '0.0.0.0' && explicitHost !== '::') {
+    return explicitHost;
+  }
 
-function start() {
+  // Detect non-loopback IPv4 addresses (external interfaces)
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    const addrs = interfaces[name] || [];
+    for (const addr of addrs) {
+      if (addr.family === 'IPv4' && !addr.internal && !addr.address.startsWith('127.')) {
+        return '0.0.0.0'; // bind to all interfaces so external access works
+      }
+    }
+  }
+
+  return '0.0.0.0'; // default: bind all interfaces
+}
+
+function start(port = PORT, retries = 10) {
   try {
     db.get('SELECT 1 AS ok');
     logger.info('Database connected successfully');
@@ -275,11 +296,45 @@ function start() {
     logger.warn('Database not available - run "npm run migrate && npm run seed"');
   }
 
-  server.listen(PORT, () => {
-    logger.info(`LeaxPanel(os) v${APP_VERSION} running on http://${process.env.HOST || '0.0.0.0'}:${PORT}`);
+  if (currentServer) {
+    try { currentServer.close(); } catch (e) { /* ignore */ }
+  }
+
+  const { server, io: ioInstance } = createServerInstance();
+  currentServer = server;
+  currentIo = ioInstance;
+
+  monitoringService.stop();
+  monitoringService.start();
+  autoHealingService.stop();
+  autoHealingService.start();
+  backupService.stop();
+  backupService.start();
+
+  discordService.logSystemEvent('Server Started', {
+    port: port,
+    environment: process.env.NODE_ENV || 'development',
+    version: APP_VERSION
+  }).catch(() => {});
+
+  const boundHost = resolveHost();
+
+  server.listen(port, boundHost, () => {
+    logger.info(`LeaxPanel(os) v${APP_VERSION} running on http://${boundHost}:${port}`);
+  });
+
+  server.once('error', (err) => {
+    if (err.code === 'EADDRINUSE' && retries > 0) {
+      const nextPort = port + 1;
+      logger.warn(`Port ${port} is in use, retrying on port ${nextPort} (${retries} attempts left)...`);
+      setTimeout(() => start(nextPort, retries - 1), 1000);
+    } else {
+      logger.error(`Failed to start server on port ${port}: ${err.message}`);
+      process.exit(1);
+    }
   });
 }
 
 start();
 
-module.exports = { app, server, io };
+module.exports = { app, server: currentServer, io: currentIo };
