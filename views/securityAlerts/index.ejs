@@ -1,0 +1,51 @@
+<% columns = [
+  { key: 'severity', label: 'Severity', badge: true },
+  { key: 'title', label: 'Title', primary: true },
+  { key: 'source', label: 'Source' },
+  { key: 'acknowledged', label: 'Acknowledged', status: true },
+  { key: 'created_at', label: 'Created', date: true }
+]; %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><%= pageTitle %></h1>
+    <p class="page-subtitle"><%= pageSubtitle %></p>
+  </div>
+  <div class="page-actions">
+    <form class="inline-form" style="margin:0;">
+      <select name="severity" class="form-control" style="width:auto;display:inline-block;margin-right:8px;">
+        <option value="">All severities</option>
+        <option value="critical" <%= currentSeverity === 'critical' ? 'selected' : '' %>>
+          Critical
+        </option>
+        <option value="high" <%= currentSeverity === 'high' ? 'selected' : '' %>>
+          High
+        </option>
+        <option value="medium" <%= currentSeverity === 'medium' ? 'selected' : '' %>>
+          Medium
+        </option>
+        <option value="low" <%= currentSeverity === 'low' ? 'selected' : '' %>>
+          Low
+        </option>
+      </select>
+      <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+    </form>
+    <% if (unackCount && unackCount > 0) { %>
+      <a href="/?unacknowledged=true" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        <%= unackCount %> Unacknowledged
+      </a>
+    <% } %>
+  </div>
+</div>
+
+<div class="card">
+  <% if (typeof loadError !== 'undefined' && loadError) { %>
+    <div class="card-body">
+      <div class="alert alert-danger"><span class="alert-icon">!</span><div><%= loadError %></div></div>
+    </div>
+  <% } %>
+  <div class="card-body">
+    <%- include('../partials/resourceTable'); %>
+  </div>
+</div>

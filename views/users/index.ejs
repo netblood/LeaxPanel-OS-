@@ -1,0 +1,79 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Users</h1>
+    <p class="page-subtitle">Manage panel accounts, roles and access</p>
+  </div>
+  <div class="page-actions">
+    <a href="/users/roles" class="btn btn-secondary">Roles &amp; permissions</a>
+    <a href="/users/create" class="btn btn-primary">New user</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <% if (!users || !users.length) { %>
+      <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <h3>No users yet</h3>
+        <p>Invite your first team member to start collaborating on the platform.</p>
+        <a href="/users/create" class="btn btn-primary">Create user</a>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:34px;"><input type="checkbox" data-table-select-all aria-label="Select all"></th>
+              <th>User</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>2FA</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach(function(u) { %>
+              <tr>
+                <td><input type="checkbox" data-row-check aria-label="Select row"></td>
+                <td class="cell-primary">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="avatar"><%= (u.name || 'U').charAt(0).toUpperCase() %></span>
+                    <span><%= u.name %></span>
+                  </div>
+                </td>
+                <td><%= u.email %></td>
+                <td><span class="badge badge-info badge-plain"><%= u.role %></span></td>
+                <td>
+                  <% if (u.two_factor_enabled) { %>
+                    <span class="badge badge-success">Enabled</span>
+                  <% } else { %>
+                    <span class="badge badge-muted badge-plain">Off</span>
+                  <% } %>
+                </td>
+                <td>
+                  <span class="badge badge-<%= u.is_active ? 'success' : 'danger' %>"><%= u.is_active ? 'active' : 'suspended' %></span>
+                </td>
+                <td><%= new Date(String(u.created_at || '').replace(' ','T')).toLocaleDateString('en-GB') %></td>
+                <td class="col-actions">
+                  <div class="btn-group">
+                    <a href="/users/<%= u.id %>/edit" class="btn btn-secondary btn-sm">Edit</a>
+                    <form action="/users/<%= u.id %>/toggle" method="POST">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button type="submit" class="btn btn-secondary btn-sm"><%= u.is_active ? 'Disable' : 'Enable' %></button>
+                    </form>
+                    <form action="/users/<%= u.id %>/delete" method="POST" data-confirm="Delete this user? This cannot be undone.">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

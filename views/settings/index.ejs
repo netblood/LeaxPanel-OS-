@@ -1,0 +1,104 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Settings</h1>
+    <p class="page-subtitle">Panel branding, registration, billing and maintenance</p>
+  </div>
+  <div class="page-actions">
+    <form action="/settings/reset" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn btn-ghost">Refresh cache</button>
+    </form>
+  </div>
+</div>
+
+<form action="/settings" method="POST" class="card" data-loading>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="card-body">
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label" for="panel_name">Panel name</label>
+        <input class="form-control" type="text" id="panel_name" name="panel_name" value="<%= settings.panel_name || '' %>">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="panel_tagline">Tagline</label>
+        <input class="form-control" type="text" id="panel_tagline" name="panel_tagline" value="<%= settings.panel_tagline || '' %>">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="primary_color">Primary colour</label>
+        <input class="form-control" type="color" id="primary_color" name="primary_color" value="<%= settings.primary_color || '#7c5cff' %>" style="height:44px;padding:4px;">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="accent_color">Accent colour</label>
+        <input class="form-control" type="color" id="accent_color" name="accent_color" value="<%= settings.accent_color || '#22d3ee' %>" style="height:44px;padding:4px;">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="support_email">Support email</label>
+        <input class="form-control" type="email" id="support_email" name="support_email" value="<%= settings.support_email || '' %>">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="support_url">Support URL</label>
+        <input class="form-control" type="url" id="support_url" name="support_url" value="<%= settings.support_url || '' %>" placeholder="https://...">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="default_timezone">Default timezone</label>
+        <input class="form-control" type="text" id="default_timezone" name="default_timezone" value="<%= settings.default_timezone || 'UTC' %>">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="default_locale">Default locale</label>
+        <input class="form-control" type="text" id="default_locale" name="default_locale" value="<%= settings.default_locale || 'en' %>">
+      </div>
+      <div class="form-group span-2">
+        <label class="form-label" for="footer_text">Footer text</label>
+        <input class="form-control" type="text" id="footer_text" name="footer_text" value="<%= settings.footer_text || '' %>">
+      </div>
+      <div class="form-group span-2">
+        <label class="form-label" for="maintenance_message">Maintenance message</label>
+        <textarea class="form-control" id="maintenance_message" name="maintenance_message"><%= settings.maintenance_message || '' %></textarea>
+      </div>
+    </div>
+
+    <hr style="border:none;border-top:1px solid var(--border);margin:var(--sp-5) 0;">
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-check">
+          <input type="checkbox" id="registration_enabled" name="registration_enabled" <%= settings.registration_enabled === 'true' ? 'checked' : '' %>>
+          <span>
+            <strong>Allow public registration</strong>
+            <span class="form-hint">Visitors can create their own account from the login page.</span>
+          </span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="form-check">
+          <input type="checkbox" id="billing_enabled" name="billing_enabled" <%= settings.billing_enabled === 'true' ? 'checked' : '' %>>
+          <span>
+            <strong>Enable billing</strong>
+            <span class="form-hint">Off by default. When disabled only the service request system is used.</span>
+          </span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="form-check">
+          <input type="checkbox" id="maintenance_mode" name="maintenance_mode" <%= settings.maintenance_mode === 'true' ? 'checked' : '' %>>
+          <span>
+            <strong>Maintenance mode</strong>
+            <span class="form-hint">Shows the maintenance message to non-admin users.</span>
+          </span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="billing_provider">Billing provider</label>
+        <select class="form-control" id="billing_provider" name="billing_provider">
+          <% ['manual', 'stripe', 'paypal'].forEach(function(p) { %>
+            <option value="<%= p %>" <%= settings.billing_provider === p ? 'selected' : '' %>><%= p.charAt(0).toUpperCase() + p.slice(1) %></option>
+          <% }); %>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer form-actions">
+    <button type="submit" class="btn btn-primary">Save settings</button>
+    <a href="/dashboard" class="btn btn-ghost">Cancel</a>
+  </div>
+</form>

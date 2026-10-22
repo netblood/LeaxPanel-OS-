@@ -1,0 +1,77 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Edit <%= fileName %></h1>
+    <p class="page-subtitle"><%= filePath %></p>
+  </div>
+  <div class="page-actions">
+    <a href="/file-manager?path=<%= encodeURIComponent(filePath.split('/').slice(0, -1).join('/')) %>" class="btn btn-ghost">Back</a>
+  </div>
+</div>
+
+<% if (truncated) { %>
+  <div class="alert alert-warning"><span class="alert-icon">!</span><div>This file is large and was truncated for display. Saving will overwrite the file with the shown content.</div></div>
+<% } %>
+
+<form action="/file-manager/edit" method="POST" class="card" data-loading id="editorForm">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <input type="hidden" name="path" value="<%= filePath %>">
+  <input type="hidden" name="content" id="editorContent" value="">
+  <div class="card-body">
+    <div id="monacoEditor" style="height: 500px; width: 100%;"></div>
+  </div>
+  <div class="card-footer form-actions">
+    <button type="submit" class="btn btn-primary">Save file</button>
+    <a href="/file-manager" class="btn btn-ghost">Cancel</a>
+  </div>
+</form>
+
+<script>
+  // Initialize Monaco Editor
+  require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs' }});
+  
+  require(['vs/editor/editor.main'], function() {
+    const language = getLanguageFromFilename('<%= fileName %>');
+    const editor = monaco.editor.create(document.getElementById('monacoEditor'), {
+      value: `<%= content.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t') %>`,
+      language: language,
+      theme: document.documentElement.getAttribute('data-theme') === 'light' ? 'vs' : 'vs-dark',
+      automaticLayout: true,
+      minimap: { enabled: true },
+      fontSize: 14,
+      lineNumbers: 'on',
+      wordWrap: 'on',
+      scrollBeyondLastLine: false,
+      tabSize: 2,
+      insertSpaces: true
+    });
+
+    // Sync editor content to hidden input on form submit
+    document.getElementById('editorForm').addEventListener('submit', function() {
+      document.getElementById('editorContent').value = editor.getValue();
+    });
+
+    // Theme sync
+    const observer = new MutationObserver(() => {
+      const theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'vs' : 'vs-dark';
+      monaco.editor.setTheme(theme);
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  });
+
+  function getLanguageFromFilename(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    const langMap = {
+      'js': 'javascript', 'ts': 'typescript', 'jsx': 'javascript', 'tsx': 'typescript',
+      'json': 'json', 'html': 'html', 'htm': 'html', 'css': 'css', 'scss': 'scss',
+      'less': 'less', 'md': 'markdown', 'markdown': 'markdown', 'py': 'python',
+      'sh': 'shell', 'bash': 'shell', 'zsh': 'shell', 'yml': 'yaml', 'yaml': 'yaml',
+      'xml': 'xml', 'sql': 'sql', 'dockerfile': 'dockerfile', 'tf': 'terraform',
+      'go': 'go', 'rs': 'rust', 'java': 'java', 'kt': 'kotlin', 'php': 'php',
+      'rb': 'ruby', 'pl': 'perl', 'lua': 'lua', 'r': 'r', 'swift': 'swift',
+      'cs': 'csharp', 'cpp': 'cpp', 'c': 'cpp', 'h': 'cpp', 'hpp': 'cpp',
+      'vue': 'vue', 'svelte': 'html', 'toml': 'toml', 'ini': 'ini', 'cfg': 'ini',
+      'conf': 'ini', 'log': 'text', 'txt': 'text'
+    };
+    return langMap[ext] || 'text';
+  }
+</script>

@@ -1,0 +1,159 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Security</h1>
+    <p class="page-subtitle">Audit trail, access control, IP lists and hardening status</p>
+  </div>
+  <div class="page-actions">
+    <a href="/security/audit" class="btn btn-secondary">Audit log</a>
+    <a href="/users/roles" class="btn btn-secondary">Permissions</a>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Security score</span>
+      <span class="stat-icon <%= score >= 80 ? 'success' : score >= 55 ? 'warning' : 'danger' %>">◈</span>
+    </div>
+    <div class="stat-value"><%= score %>%</div>
+    <div class="stat-meter <%= score >= 80 ? '' : score >= 55 ? 'warning' : 'danger' %>"><span style="width:<%= score %>%"></span></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Critical events</span>
+      <span class="stat-icon danger">!</span>
+    </div>
+    <div class="stat-value"><%= events.filter(e => String(e.severity).toLowerCase() === 'critical').length %></div>
+    <div class="stat-delta flat">last 100 events</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Blacklisted IPs</span>
+      <span class="stat-icon warning">⊘</span>
+    </div>
+    <div class="stat-value"><%= blacklist.length %></div>
+    <div class="stat-delta flat"><%= whitelist.length %> whitelisted</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Roles configured</span>
+      <span class="stat-icon info">◑</span>
+    </div>
+    <div class="stat-value"><%= roles.length %></div>
+    <div class="stat-delta flat"><%= auditLogs.length %> audit entries</div>
+  </div>
+</div>
+
+<div class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:var(--sp-4);margin-bottom:var(--sp-4);">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h3>IP access lists</h3>
+        <p>Whitelist and blacklist addresses</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <form action="/security/ip-list" method="POST" class="form-grid" data-loading>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="form-group">
+          <label class="form-label" for="ip_address">IP address</label>
+          <input class="form-control" type="text" id="ip_address" name="ip_address" placeholder="203.0.113.10" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="list_type">List</label>
+          <select class="form-control" id="list_type" name="list_type">
+            <option value="blacklist">Blacklist</option>
+            <option value="whitelist">Whitelist</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="note">Note</label>
+          <input class="form-control" type="text" id="note" name="note" placeholder="Optional reason">
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-end;">
+          <button type="submit" class="btn btn-primary">Add address</button>
+        </div>
+      </form>
+
+      <% const allIps = blacklist.concat(whitelist); %>
+      <% if (allIps.length) { %>
+        <div class="table-wrap" style="margin-top:var(--sp-4);">
+          <table class="data-table">
+            <thead><tr><th>IP</th><th>List</th><th>Note</th><th class="col-actions">Action</th></tr></thead>
+            <tbody>
+              <% allIps.forEach(function(ip) { %>
+                <tr>
+                  <td class="cell-primary text-mono"><%= ip.ip_address %></td>
+                  <td><span class="badge badge-<%= ip.list_type === 'whitelist' ? 'success' : 'danger' %>"><%= ip.list_type %></span></td>
+                  <td class="text-muted text-sm"><%= ip.note || '—' %></td>
+                  <td class="col-actions">
+                    <form action="/security/ip-list/<%= ip.id %>/delete" method="POST" data-confirm="Remove this IP address?">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                    </form>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h3>Security events</h3>
+        <p>Recent activity flagged by the security engine</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <% if (!events || !events.length) { %>
+        <div class="empty-state" style="padding:var(--sp-8) var(--sp-4);">
+          <div class="empty-icon">◈</div>
+          <h3>No security events</h3>
+          <p>Nothing suspicious has been detected.</p>
+        </div>
+      <% } else { %>
+        <div class="activity-list">
+          <% events.slice(0, 15).forEach(function(e) { %>
+            <div class="activity-item">
+              <span class="activity-icon">●</span>
+              <div class="activity-body">
+                <div class="activity-title"><%= e.event_type %></div>
+                <div class="activity-meta"><%= e.ip_address || 'local' %> · <%= e.created_at %></div>
+              </div>
+              <span class="badge badge-<%= String(e.severity).toLowerCase() === 'critical' ? 'danger' : String(e.severity).toLowerCase() === 'warning' ? 'warning' : 'info' %>"><%= e.severity %></span>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h3>Roles</h3>
+      <p>Access levels available on this panel</p>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Role</th><th>Identifier</th><th>Description</th></tr></thead>
+        <tbody>
+          <% roles.forEach(function(r) { %>
+            <tr>
+              <td class="cell-primary"><%= r.display_name %></td>
+              <td><span class="badge badge-info badge-plain"><%= r.name %></span></td>
+              <td class="text-muted text-sm"><%= r.description %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,156 @@
+<%- include('../partials/head', { title: 'Workspaces', pageId: 'workspaces' }) %>
+<body class="workspaces-page">
+  <%- include('../partials/sidebar') %>
+  <%- include('../partials/topbar') %>
+
+  <main class="main-content" id="mainContent">
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1 class="page-title">Workspaces</h1>
+        <p class="page-subtitle">Manage your workspaces and switch between them</p>
+      </div>
+      <div class="page-header-right">
+        <a href="/workspaces/create" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          New Workspace
+        </a>
+      </div>
+    </div>
+
+    <!-- Workspace Type Filter -->
+    <div class="card workspace-filters">
+      <div class="filter-tabs" role="tablist">
+        <button class="filter-tab active" data-filter="all" role="tab" aria-selected="true">All</button>
+        <button class="filter-tab" data-filter="personal" role="tab" aria-selected="false">
+          <span class="type-icon" style="background: #8b5cf6">👤</span> Personal
+        </button>
+        <button class="filter-tab" data-filter="clients" role="tab" aria-selected="false">
+          <span class="type-icon" style="background: #06b6d4">🏢</span> Clients
+        </button>
+        <button class="filter-tab" data-filter="company" role="tab" aria-selected="false">
+          <span class="type-icon" style="background: #10b981">🏭</span> Company
+        </button>
+        <button class="filter-tab" data-filter="development" role="tab" aria-selected="false">
+          <span class="type-icon" style="background: #f59e0b">💻</span> Development
+        </button>
+        <button class="filter-tab" data-filter="production" role="tab" aria-selected="false">
+          <span class="type-icon" style="background: #ef4444">🚀</span> Production
+        </button>
+      </div>
+    </div>
+
+    <!-- Workspace Grid -->
+    <div class="workspaces-grid" id="workspacesGrid">
+      <% if (userWorkspaces && userWorkspaces.length > 0) { %>
+        <% userWorkspaces.forEach(function(ws) { %>
+          <article class="workspace-card" data-type="<%= ws.type %>" data-id="<%= ws.id %>">
+            <div class="workspace-card-header">
+              <div class="workspace-type-badge" style="background: <%= workspaceTypes[ws.type]?.color || '#8b5cf6' %>">
+                <%= workspaceTypes[ws.type]?.icon || '📁' %>
+              </div>
+              <div class="workspace-status <%= ws.status %>"><%= ws.status %></div>
+            </div>
+            <div class="workspace-card-body">
+              <h3 class="workspace-name"><%= ws.name %></h3>
+              <% if (ws.description) { %>
+                <p class="workspace-description"><%= ws.description %></p>
+              <% } %>
+              <div class="workspace-meta">
+                <span class="workspace-role <%= ws.member_status %>"><%= ws.role %></span>
+                <% if (ws.is_default) { %>
+                  <span class="workspace-default">Default</span>
+                <% } %>
+              </div>
+            </div>
+            <div class="workspace-card-stats">
+              <% if (ws.member_count !== undefined) { %>
+                <div class="stat">
+                  <span class="stat-value"><%= ws.member_count %></span>
+                  <span class="stat-label">Members</span>
+                </div>
+              <% } %>
+              <% if (ws.service_count !== undefined) { %>
+                <div class="stat">
+                  <span class="stat-value"><%= ws.service_count %></span>
+                  <span class="stat-label">Services</span>
+                </div>
+              <% } %>
+              <% if (ws.domain_count !== undefined) { %>
+                <div class="stat">
+                  <span class="stat-value"><%= ws.domain_count %></span>
+                  <span class="stat-label">Domains</span>
+                </div>
+              <% } %>
+            </div>
+            <div class="workspace-card-footer">
+              <form action="/workspaces/<%= ws.id %>/switch" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-primary btn-sm switch-btn" <%= ws.id === activeWorkspace?.id ? 'disabled' : '' %>>
+                  <%= ws.id === activeWorkspace?.id ? 'Active' : 'Switch' %>
+                </button>
+              </form>
+              <div class="workspace-actions">
+                <a href="/workspaces/<%= ws.id %>" class="btn btn-ghost btn-sm" title="View Dashboard">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                </a>
+                <% if (ws.role === 'owner' || ws.role === 'admin') { %>
+                  <a href="/workspaces/<%= ws.id %>/members" class="btn btn-ghost btn-sm" title="Manage Members">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                  </a>
+                  <a href="/workspaces/<%= ws.id %>/settings" class="btn btn-ghost btn-sm" title="Settings">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                  </a>
+                <% } %>
+              </div>
+            </div>
+          </article>
+        <% }); %>
+      <% } else { %>
+        <div class="empty-state">
+          <div class="empty-icon">📦</div>
+          <h3>No Workspaces Yet</h3>
+          <p>Create your first workspace to get started</p>
+          <a href="/workspaces/create" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Create Workspace
+          </a>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Create Default Workspaces Button (for owners) -->
+    <% if (typeof session !== 'undefined' && session.user && session.user.role === 'owner') { %>
+      <div class="card create-defaults-card">
+        <div class="card-body">
+          <h3>Quick Setup</h3>
+          <p>Create standard workspace structure for your organization</p>
+          <form action="/workspaces/create-defaults" method="POST" id="createDefaultsForm">
+            <button type="submit" class="btn btn-secondary" onclick="return confirm('Create default workspaces (Personal, Clients, Company, Development, Production)?')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+              Create Default Workspaces
+            </button>
+          </form>
+        </div>
+      </div>
+    <% } %>
+  </main>
+
+  <%- include('../partials/footer') %>
+  <script>
+    // Filter tabs
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        const filter = this.dataset.filter;
+        document.querySelectorAll('.workspace-card').forEach(card => {
+          if (filter === 'all' || card.dataset.type === filter) {
+            card.style.display = '';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

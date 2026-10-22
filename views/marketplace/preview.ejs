@@ -1,0 +1,379 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><%= pageTitle %></h1>
+    <p class="page-subtitle">Preview template before deploying</p>
+  </div>
+  <div class="page-actions">
+    <button class="btn btn-primary btn-deploy-preview" data-template-id="<%= template.id %>">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      Deploy This Template
+    </button>
+    <a href="/templates" class="btn btn-outline-secondary">Back to Marketplace</a>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Preview Panel -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <div class="d-flex align-items-center">
+          <div class="marketplace-icon me-3" style="width: 48px; height: 48px;">
+            <%= getIcon(template.category) %>
+          </div>
+          <div>
+            <h5 class="mb-0"><%= template.name %></h5>
+            <div class="d-flex align-items-center gap-2 text-muted small">
+              <span class="badge bg-secondary"><%= template.category %></span>
+              <% if (template.official) { %>
+                <span class="badge bg-primary">Official</span>
+              <% } else if (template.verified) { %>
+                <span class="badge bg-success">Verified</span>
+              <% } %>
+              <span>v<%= template.version %></span>
+              <% if (template.updatedAt) { %>
+                <span>Updated <%= timeAgo(template.updatedAt) %></span>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="mb-4">
+          <h6>Description</h6>
+          <p class="text-muted"><%= template.description %></p>
+        </div>
+        
+        <div class="mb-4">
+          <h6>Files Included</h6>
+          <div class="file-tree" id="fileTree">
+            <% Object.keys(template.files).forEach(filename => { %>
+              <div class="file-tree-item" data-file="<%= filename %>">
+                <span class="file-icon"><%= getFileIcon(filename) %></span>
+                <span class="file-name"><%= filename %></span>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+        
+        <div class="mb-4">
+          <h6>File Preview</h6>
+          <div class="preview-area border rounded p-3" style="background: var(--surface-2); min-height: 300px; max-height: 500px; overflow: auto;">
+            <pre id="filePreview" class="mb-0" style="font-size: 0.85rem; white-space: pre-wrap;">Select a file to preview</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Sidebar -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0">Template Details</h6>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label text-muted small">Rating</label>
+          <div class="d-flex align-items-center gap-2">
+            <div class="rating-stars">
+              <% for (let i = 1; i <= 5; i++) { %>
+                <span class="<%= i <= Math.round(template.rating) ? 'text-warning' : 'text-muted' %>">★</span>
+              <% } %>
+            </div>
+            <span class="fw-bold"><%= template.rating.toFixed(1) %></span>
+            <span class="text-muted">(<%= template.reviews %> reviews)</span>
+          </div>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label text-muted small">Downloads</label>
+          <div class="fw-bold"><%= template.downloads.toLocaleString() %></div>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label text-muted small">Trust Score</label>
+          <div class="d-flex align-items-center gap-2">
+            <div class="progress flex-grow-1" style="height: 6px;">
+              <div class="progress-bar bg-success" style="width: <%= template.trustScore %>%"></div>
+            </div>
+            <span class="fw-bold"><%= template.trustScore %>%</span>
+          </div>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label text-muted small">Popularity</label>
+          <div class="d-flex align-items-center gap-2">
+            <div class="progress flex-grow-1" style="height: 6px;">
+              <div class="progress-bar bg-primary" style="width: <%= Math.min(template.popularity, 100) %>%"></div>
+            </div>
+            <span class="fw-bold"><%= template.popularity %></span>
+          </div>
+        </div>
+        
+        <hr>
+        
+        <div class="mb-3">
+          <h6>Requirements</h6>
+          <ul class="list-unstyled small text-muted">
+            <% if (template.files['package.json']) { %>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-2 text-success"><polyline points="20 6 9 17 4 12"></polyline></svg>Node.js project</li>
+            <% } %>
+            <% if (template.files['docker-compose.yml']) { %>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-2 text-info"><path d="M12 2a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h16z"></path></svg>Docker required</li>
+            <% } %>
+            <% if (template.files['.env.example']) { %>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-2 text-warning"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>Environment variables needed</li>
+            <% } %>
+            <% if (template.id.includes('bot') || template.id.includes('agent')) { %>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-2 text-primary"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>API token required</li>
+            <% } %>
+          </ul>
+        </div>
+        
+        <div class="mb-3">
+          <h6>Quick Stats</h6>
+          <div class="row text-center text-muted small">
+            <div class="col-6"><div class="fw-bold"><%= Object.keys(template.files).length %></div><div>Files</div></div>
+            <div class="col-6"><div class="fw-bold"><%= template.readme ? 'Yes' : 'No' %></div><div>README</div></div>
+            <div class="col-6"><div class="fw-bold"><%= template.files['docker-compose.yml'] ? 'Yes' : 'No' %></div><div>Docker</div></div>
+            <div class="col-6"><div class="fw-bold"><%= template.files['.env.example'] ? 'Yes' : 'No' %></div><div>Config</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Reviews -->
+    <div class="card mt-3">
+      <div class="card-header">
+        <h6 class="mb-0">Recent Reviews</h6>
+      </div>
+      <div class="card-body" id="reviewsContainer">
+        <div class="text-center text-muted py-3">Loading reviews...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Deploy Modal -->
+<div class="modal fade" id="deployModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Deploy <%= template.name %></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="deployForm">
+        <div class="modal-body">
+          <input type="hidden" name="templateId" value="<%= template.id %>">
+          <div class="mb-3">
+            <label class="form-label">Deployment Name</label>
+            <input type="text" class="form-control" name="name" required value="<%= template.id.replace('-starter', '') %>">
+            <div class="form-text">Unique name for this deployment</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Domain (optional)</label>
+            <input type="text" class="form-control" name="domain" placeholder="app.example.com">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Workspace</label>
+            <select class="form-select" name="workspaceId">
+              <option value="">Default Workspace</option>
+            </select>
+          </div>
+          <div class="mb-3" id="envVarsSection" style="display: none;">
+            <label class="form-label">Environment Variables</label>
+            <textarea class="form-control" name="envVars" rows="4" placeholder='{"KEY": "value"}'></textarea>
+            <div class="form-text">JSON object of environment variables</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Deploy Now</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // File tree click
+  document.querySelectorAll('.file-tree-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.file-tree-item').forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+      const filename = this.dataset.file;
+      const content = `<%= JSON.stringify(template.files).replace(/"/g, '"') %>`;
+      const files = JSON.parse(content);
+      document.getElementById('filePreview').textContent = files[filename] || '';
+    });
+  });
+  
+  // Auto-select first file
+  const firstFile = document.querySelector('.file-tree-item');
+  if (firstFile) firstFile.click();
+  
+  // Load reviews
+  fetch('/templates/<%= template.id %>/reviews')
+    .then(r => r.json())
+    .then(data => {
+      const container = document.getElementById('reviewsContainer');
+      if (data.reviews.length === 0) {
+        container.innerHTML = '<div class="text-center text-muted py-3">No reviews yet</div>';
+        return;
+      }
+      container.innerHTML = data.reviews.map(r => `
+        <div class="border-bottom pb-3 mb-3 last:border-0 last:pb-0 last:mb-0">
+          <div class="d-flex justify-content-between mb-1">
+            <strong class="small"><%= r.user_name %></strong>
+            <span class="text-muted small"><%= timeAgo(r.created_at) %></span>
+          </div>
+          <div class="rating-stars small mb-1">
+            <% for (let i = 1; i <= 5; i++) { %>
+              <span class="<%= i <= r.rating ? 'text-warning' : 'text-muted' %>">★</span>
+            <% } %>
+          </div>
+          <% if (r.review) { %>
+            <p class="small text-muted mb-0"><%= r.review %></p>
+          <% } %>
+        </div>
+      `).join('');
+    });
+  
+  // Check for env vars
+  fetch('/api/templates/<%= template.id %>/preview')
+    .then(r => r.json())
+    .then(data => {
+      const envSection = document.getElementById('envVarsSection');
+      if (data.files['.env.example']) {
+        envSection.style.display = 'block';
+        envSection.querySelector('textarea').placeholder = data.files['.env.example'];
+      }
+    });
+  
+  // Deploy form
+  document.getElementById('deployForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const data = {
+      name: formData.get('name'),
+      domain: formData.get('domain') || null,
+      envVars: formData.get('envVars') ? JSON.parse(formData.get('envVars')) : {},
+      workspaceId: formData.get('workspaceId') || null
+    };
+    
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Deploying...';
+    
+    try {
+      const res = await fetch('/templates/<%= template.id %>/deploy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await res.json();
+      
+      if (result.success) {
+        bootstrap.Modal.getInstance(document.getElementById('deployModal')).hide();
+        showToast('Deployment started!', 'success');
+        if (result.redirect) {
+          setTimeout(() => window.location.href = result.redirect, 1500);
+        }
+      } else {
+        showToast(result.error || 'Deployment failed', 'error');
+      }
+    } catch (err) {
+      showToast('Deployment failed: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Deploy Now';
+    }
+  });
+  
+  document.querySelector('.btn-deploy-preview')?.addEventListener('click', () => {
+    new bootstrap.Modal(document.getElementById('deployModal')).show();
+  });
+});
+
+function getIcon(category) {
+  const icons = {
+    'Websites': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path></svg>',
+    'Applications': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8"></path><path d="M12 17v4"></path></svg>',
+    'Bots': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="8" y2="21"></line><line x1="16" y1="21" x2="16" y2="21"></line></svg>',
+    'AI Agents': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"></path><circle cx="8.5" cy="14.5" r="1.5"></circle><circle cx="15.5" cy="14.5" r="1.5"></circle></svg>',
+    'Workflows': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="8" height="8" rx="2"></rect><rect x="14" y="2" width="8" height="8" rx="2"></rect><rect x="2" y="14" width="8" height="8" rx="2"></rect><rect x="14" y="14" width="8" height="8" rx="2"></rect></svg>',
+    'Databases': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14a9 3 0 0 0 18 0V5"></path></svg>',
+    'Email': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>',
+    'Storage': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3"></path><rect x="1" y="3" width="22" height="16" rx="2"></rect></svg>',
+    'Domains': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>'
+  };
+  return icons[category] || icons['Applications'];
+}
+
+function getFileIcon(filename) {
+  if (filename.endsWith('.js') || filename.endsWith('.ts')) return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>';
+  if (filename.endsWith('.json')) return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>';
+  if (filename.endsWith('.yml') || filename.endsWith('.yaml')) return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>';
+  if (filename.endsWith('.md')) return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>';
+  if (filename.endsWith('.html')) return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>';
+  if (filename.startsWith('.env')) return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg>';
+  return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>';
+}
+
+function timeAgo(date) {
+  const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return minutes + 'm ago';
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return hours + 'h ago';
+  const days = Math.floor(hours / 24);
+  if (days < 30) return days + 'd ago';
+  const months = Math.floor(days / 30);
+  return months + 'mo ago';
+}
+
+function showToast(message, type) {
+  const toast = document.createElement('div');
+  toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : 'success'} border-0 position-fixed bottom-0 end-0 m-3`;
+  toast.setAttribute('role', 'alert');
+  toast.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+  document.body.appendChild(toast);
+  const bsToast = new bootstrap.Toast(toast);
+  bsToast.show();
+  toast.addEventListener('hidden.bs.toast', () => toast.remove());
+}
+</script>
+
+<style>
+.file-tree {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+}
+.file-tree-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 0.85rem;
+  font-family: monospace;
+}
+.file-tree-item:hover, .file-tree-item.active {
+  background: var(--primary-bg);
+}
+.file-tree-item.active {
+  border-left: 3px solid var(--primary);
+}
+.file-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+</style>

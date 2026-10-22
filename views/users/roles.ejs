@@ -1,0 +1,45 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Roles &amp; permissions</h1>
+    <p class="page-subtitle">How access is granted across the platform</p>
+  </div>
+  <div class="page-actions">
+    <a href="/users" class="btn btn-ghost">Back to users</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h3>Permission matrix</h3>
+      <p>Each role grants a fixed set of module permissions</p>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th>Description</th>
+            <th style="text-align:right;">Permissions</th>
+            <th>Modules</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% roles.forEach(function(role) {
+               const perms = rolePermissions[role.name] || [];
+               const modules = Array.from(new Set(perms.map(p => p.split(':')[0]))).join(', ');
+          %>
+            <tr>
+              <td class="cell-primary"><%= role.display_name %> <span class="badge badge-info badge-plain"><%= role.name %></span></td>
+              <td><%= role.description %></td>
+              <td style="text-align:right;"><%= perms.length %></td>
+              <td class="text-muted text-sm"><%= modules || '—' %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

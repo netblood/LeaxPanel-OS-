@@ -1,0 +1,354 @@
+<%
+  // Workspace Switcher Partial
+  const workspaces = userWorkspaces || [];
+  const currentWorkspace = activeWorkspace || null;
+  const workspaceTypes = {
+    personal: { icon: '👤', label: 'Personal', color: '#8b5cf6' },
+    clients: { icon: '🏢', label: 'Clients', color: '#06b6d4' },
+    company: { icon: '🏭', label: 'Company', color: '#10b981' },
+    development: { icon: '💻', label: 'Development', color: '#f59e0b' },
+    production: { icon: '🚀', label: 'Production', color: '#ef4444' }
+  };
+%>
+
+<!-- Workspace Switcher in Sidebar -->
+<div class="workspace-switcher" id="workspaceSwitcher">
+  <div class="workspace-switcher-header">
+    <span class="workspace-switcher-label">Workspaces</span>
+    <% if (isOwner) { %>
+      <a href="/workspaces/create" class="btn btn-xs btn-primary" title="Create new workspace">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </a>
+    <% } %>
+  </div>
+
+  <div class="workspace-list" id="workspaceList">
+    <% workspaces.forEach(function(ws) { %>
+      <%
+        const type = workspaceTypes[ws.type] || { icon: '📁', label: ws.type, color: '#6b7280' };
+        const isActive = currentWorkspace && currentWorkspace.id === ws.id;
+        const role = ws.member_role || 'member';
+        const roleLabels = { owner: 'Owner', admin: 'Admin', manager: 'Manager', developer: 'Developer', member: 'Member', viewer: 'Viewer' };
+      %>
+      <button
+        type="button"
+        class="workspace-item <%= isActive ? 'active' : '' %>"
+        data-workspace-id="<%= ws.id %>"
+        data-workspace-type="<%= ws.type %>"
+        onclick="switchWorkspace('<%= ws.id %>')"
+        title="<%= ws.name %> (<%= roleLabels[role] || role %> - <%= type.label %>)"
+      >
+        <span class="workspace-icon" style="background: <%= type.color %>"><%= type.icon %></span>
+        <div class="workspace-info">
+          <span class="workspace-name"><%= ws.name %></span>
+          <span class="workspace-meta">
+            <span class="workspace-type-badge" style="background: <%= type.color %>15; color: <%= type.color %>"><%= type.label %></span>
+            <span class="workspace-role" style="color: var(--text-muted)"><%= roleLabels[role] || role %></span>
+          </span>
+        </div>
+        <% if (isActive) { %>
+          <span class="workspace-active-indicator" style="background: <%= type.color %>"></span>
+        <% } %>
+      </button>
+    <% }); %>
+
+    <% if (workspaces.length === 0) { %>
+      <div class="workspace-empty">
+        <span class="workspace-empty-icon">📁</span>
+        <span>No workspaces</span>
+        <% if (isOwner) { %>
+          <a href="/workspaces/create" class="btn btn-sm btn-primary">Create First Workspace</a>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+
+  <% if (currentWorkspace) { %>
+    <div class="workspace-current-summary">
+      <div class="workspace-current-info">
+        <span class="workspace-current-icon" style="background: <%= (workspaceTypes[currentWorkspace.type] || { color: '#6b7280' }).color %>">
+          <%= (workspaceTypes[currentWorkspace.type] || { icon: '📁' }).icon %>
+        </span>
+        <span class="workspace-current-name"><%= currentWorkspace.name %></span>
+      </div>
+      <div class="workspace-current-stats">
+        <% if (currentWorkspace.stats) { %>
+          <span class="stat-mini" title="Services"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg><%= currentWorkspace.stats.services || 0 %></span>
+          <span class="stat-mini" title="Members"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><%= currentWorkspace.stats.members || 0 %></span>
+          <span class="stat-mini" title="Domains"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg><%= currentWorkspace.stats.domains || 0 %></span>
+        <% } %>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<script>
+function switchWorkspace(workspaceId) {
+  // Show loading state
+  const btn = document.querySelector(`[data-workspace-id="${workspaceId}"]`);
+  if (btn) {
+    btn.classList.add('switching');
+    btn.disabled = true;
+  }
+
+  // Call API to switch workspace
+  fetch('/workspaces/' + workspaceId + '/switch', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Reload page to reflect new workspace context
+      window.location.reload();
+    } else {
+      showToast(data.error || 'Failed to switch workspace', 'error');
+      if (btn) {
+        btn.classList.remove('switching');
+        btn.disabled = false;
+      }
+    }
+  })
+  .catch(err => {
+    console.error('Workspace switch error:', err);
+    showToast('Failed to switch workspace', 'error');
+    if (btn) {
+      btn.classList.remove('switching');
+      btn.disabled = false;
+    }
+  });
+}
+
+// Auto-hide workspace switcher on mobile when clicking outside
+document.addEventListener('click', function(e) {
+  const switcher = document.getElementById('workspaceSwitcher');
+  if (switcher && !switcher.contains(e.target)) {
+    // Optional: close dropdown if it's a dropdown
+  }
+});
+</script>
+
+<style>
+/* Workspace Switcher Styles */
+.workspace-switcher {
+  border-top: 1px solid var(--border-color);
+  padding: 12px 16px 8px;
+  background: var(--sidebar-bg);
+}
+
+.workspace-switcher-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.workspace-switcher-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.workspace-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.workspace-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.workspace-item:hover:not(.switching) {
+  background: var(--hover-bg);
+  border-color: var(--border-color);
+}
+
+.workspace-item.active {
+  background: var(--primary-bg);
+  border-color: var(--primary-border);
+}
+
+.workspace-item.switching {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.workspace-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.workspace-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workspace-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workspace-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.65rem;
+}
+
+.workspace-type-badge {
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.workspace-role {
+  font-weight: 500;
+}
+
+.workspace-active-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 8px 0 0 8px;
+}
+
+.workspace-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  gap: 12px;
+}
+
+.workspace-empty-icon {
+  font-size: 24px;
+  opacity: 0.5;
+}
+
+.workspace-current-summary {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.workspace-current-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.workspace-current-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.workspace-current-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.workspace-current-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stat-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  padding: 2px 8px;
+  background: var(--hover-bg);
+  border-radius: 4px;
+}
+
+.stat-mini svg {
+  opacity: 0.7;
+}
+
+/* Sidebar collapsed state */
+.sidebar.collapsed .workspace-switcher {
+  padding: 8px;
+}
+
+.sidebar.collapsed .workspace-switcher-header,
+.sidebar.collapsed .workspace-info,
+.sidebar.collapsed .workspace-meta,
+.sidebar.collapsed .workspace-current-summary {
+  display: none;
+}
+
+.sidebar.collapsed .workspace-item {
+  padding: 8px;
+  justify-content: center;
+}
+
+.sidebar.collapsed .workspace-item.active::after {
+  content: attr(data-workspace-type);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 8px;
+  padding: 4px 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  color: var(--text-primary);
+}
+</style>

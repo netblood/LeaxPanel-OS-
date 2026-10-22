@@ -1,0 +1,52 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Audit log</h1>
+    <p class="page-subtitle">Every recorded action inside the panel</p>
+  </div>
+  <div class="page-actions">
+    <a href="/security" class="btn btn-ghost">Back to security</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <% if (!logs || !logs.length) { %>
+      <div class="empty-state">
+        <div class="empty-icon">›</div>
+        <h3>No audit entries</h3>
+        <p>Actions inside the panel will be recorded here.</p>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Resource</th>
+              <th>Method</th>
+              <th>Path</th>
+              <th>Status</th>
+              <th>Duration</th>
+              <th>IP</th>
+              <th>When</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% logs.forEach(function(l) { %>
+              <tr>
+                <td class="cell-primary"><%= l.action %></td>
+                <td><%= l.resource || '—' %></td>
+                <td><span class="badge badge-info badge-plain"><%= l.method || '—' %></span></td>
+                <td class="text-mono text-xs"><%= l.path || '—' %></td>
+                <td><span class="badge badge-<%= Number(l.status_code) >= 400 ? 'danger' : 'muted' %>"><%= l.status_code || '—' %></span></td>
+                <td><%= l.duration_ms !== null && l.duration_ms !== undefined ? l.duration_ms + ' ms' : '—' %></td>
+                <td class="text-mono text-xs"><%= l.ip_address || '—' %></td>
+                <td><%= l.createdLabel || l.created_at %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

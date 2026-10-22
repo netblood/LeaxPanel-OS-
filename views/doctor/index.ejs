@@ -1,0 +1,98 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">LeaxPanel Doctor</h1>
+    <p class="page-subtitle">Diagnose and repair the installation</p>
+  </div>
+  <div class="page-actions">
+    <form action="/doctor/run" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn btn-secondary">Re-run diagnostics</button>
+    </form>
+    <form action="/doctor/fix-all" method="POST" data-confirm="Apply all available automatic fixes?">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn btn-primary">Fix everything</button>
+    </form>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Health score</span>
+      <span class="stat-icon <%= summary.score >= 80 ? 'success' : summary.score >= 55 ? 'warning' : 'danger' %>">◈</span>
+    </div>
+    <div class="stat-value"><%= summary.score %>%</div>
+    <div class="stat-meter <%= summary.score >= 80 ? '' : summary.score >= 55 ? 'warning' : 'danger' %>"><span style="width:<%= summary.score %>%"></span></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Passed</span>
+      <span class="stat-icon success">✓</span>
+    </div>
+    <div class="stat-value"><%= summary.ok %></div>
+    <div class="stat-delta flat">of <%= summary.total %> checks</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Warnings</span>
+      <span class="stat-icon warning">!</span>
+    </div>
+    <div class="stat-value"><%= summary.warn %></div>
+    <div class="stat-delta flat">needs attention</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Failures</span>
+      <span class="stat-icon danger">×</span>
+    </div>
+    <div class="stat-value"><%= summary.fail %></div>
+    <div class="stat-delta flat">critical issues</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h3>Diagnostics</h3>
+      <p>Generated <%= new Date(report.generatedAt).toLocaleString() %></p>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Check</th>
+            <th>Status</th>
+            <th>Details</th>
+            <th class="col-actions">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% checks.forEach(function(check) { %>
+            <tr>
+              <td class="cell-primary"><%= check.label %></td>
+              <td>
+                <span class="badge badge-<%= check.status === 'ok' ? 'success' : check.status === 'warn' ? 'warning' : 'danger' %>">
+                  <%= check.status === 'ok' ? 'healthy' : check.status === 'warn' ? 'warning' : 'failed' %>
+                </span>
+              </td>
+              <td class="text-muted text-sm"><%= check.message %></td>
+              <td class="col-actions">
+                <% if (check.fixable && check.fix) { %>
+                  <form action="/doctor/fix" method="POST">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <input type="hidden" name="fix" value="<%= check.fix %>">
+                    <button type="submit" class="btn btn-primary btn-sm">Fix</button>
+                  </form>
+                <% } else { %>
+                  <span class="text-muted text-xs">—</span>
+                <% } %>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

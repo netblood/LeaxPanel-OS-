@@ -1,0 +1,48 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">API usage</h1>
+    <p class="page-subtitle">Every request made with your API keys</p>
+  </div>
+  <div class="page-actions">
+    <a href="/apikeys" class="btn btn-ghost">Back to keys</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <% if (!usage || !usage.length) { %>
+      <div class="empty-state">
+        <div class="empty-icon">◴</div>
+        <h3>No API usage yet</h3>
+        <p>Requests made with your API keys will be logged here.</p>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Endpoint</th>
+              <th>Key</th>
+              <th>Status</th>
+              <th>Duration</th>
+              <th>When</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% usage.forEach(function(u) { %>
+              <tr>
+                <td><span class="badge badge-info badge-plain"><%= u.method %></span></td>
+                <td class="cell-primary"><%= u.endpoint %></td>
+                <td><%= u.key_name || '—' %></td>
+                <td><span class="badge badge-<%= Number(u.status_code) >= 400 ? 'danger' : 'success' %>"><%= u.status_code %></span></td>
+                <td><%= u.duration_ms %> ms</td>
+                <td><%= u.created_at %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

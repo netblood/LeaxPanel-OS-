@@ -1,0 +1,87 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Billing</h1>
+    <p class="page-subtitle">Invoices, subscriptions and payments</p>
+  </div>
+  <div class="page-actions">
+    <% if (!enabled) { %>
+      <span class="badge badge-warning">Billing disabled</span>
+    <% } %>
+    <a href="/billing/create" class="btn btn-primary">New invoice</a>
+  </div>
+</div>
+
+<% if (!enabled) { %>
+  <div class="alert alert-info">
+    <span class="alert-icon">i</span>
+    <div>Billing is disabled by default. Enable it from <a href="/settings">Settings</a> to activate Stripe, PayPal or manual billing.</div>
+  </div>
+<% } %>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-top"><span class="stat-label">Invoices</span><span class="stat-icon">◫</span></div>
+    <div class="stat-value"><%= totals.count || 0 %></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top"><span class="stat-label">Revenue</span><span class="stat-icon success">$</span></div>
+    <div class="stat-value sm"><%= (totals.revenue || 0).toFixed(2) %></div>
+    <div class="stat-delta flat">paid invoices</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top"><span class="stat-label">Pending</span><span class="stat-icon warning">◷</span></div>
+    <div class="stat-value sm"><%= (totals.pending || 0).toFixed(2) %></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top"><span class="stat-label">Overdue</span><span class="stat-icon danger">!</span></div>
+    <div class="stat-value sm"><%= (totals.overdue || 0).toFixed(2) %></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <% if (!invoices || !invoices.length) { %>
+      <div class="empty-state">
+        <div class="empty-icon">◫</div>
+        <h3>No invoices</h3>
+        <p>Create your first invoice to start tracking revenue.</p>
+        <a href="/billing/create" class="btn btn-primary">Create invoice</a>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Invoice</th>
+              <th>Customer</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% invoices.forEach(function(inv) { %>
+              <tr>
+                <td class="cell-primary text-mono"><%= inv.invoice_number %></td>
+                <td><%= inv.customer_name %></td>
+                <td><%= inv.currency %> <%= Number(inv.amount || 0).toFixed(2) %></td>
+                <td><span class="badge badge-<%= inv.status === 'paid' ? 'success' : inv.status === 'overdue' ? 'danger' : inv.status === 'pending' ? 'warning' : 'muted' %>"><%= inv.status %></span></td>
+                <td><%= inv.createdLabel %></td>
+                <td class="col-actions">
+                  <div class="btn-group">
+                    <a href="/billing/<%= inv.id %>/edit" class="btn btn-secondary btn-sm">Edit</a>
+                    <form action="/billing/<%= inv.id %>/delete" method="POST" data-confirm="Delete this invoice?">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

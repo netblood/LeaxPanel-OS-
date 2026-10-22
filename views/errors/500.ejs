@@ -1,0 +1,11 @@
+<div class="error-page">
+  <div class="error-code">500</div>
+  <h1 class="error-title">Something went wrong</h1>
+  <p class="error-text">
+    <%= typeof errorMessage !== 'undefined' && errorMessage ? errorMessage : 'An unexpected error occurred while processing your request.' %>
+  </p>
+  <div class="cta-actions">
+    <a href="/dashboard" class="btn btn-primary">Back to dashboard</a>
+    <a href="/doctor" class="btn btn-secondary">Run health check</a>
+  </div>
+</div>

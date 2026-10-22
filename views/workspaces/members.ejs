@@ -1,0 +1,418 @@
+<%- include('../partials/head', { title: 'Workspace Members', pageId: 'workspaces' }) %>
+<body class="workspace-members-page">
+  <%- include('../partials/sidebar') %>
+  <%- include('../partials/topbar') %>
+
+  <main class="main-content" id="mainContent">
+    <div class="page-header">
+      <div class="page-header-left">
+        <a href="/workspaces/<%= workspace.id %>" class="btn btn-ghost">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </a>
+        <div>
+          <h1 class="page-title">Members</h1>
+          <p class="page-subtitle">Manage <%= workspace.name %> team members</p>
+        </div>
+      </div>
+      <div class="page-header-right">
+        <button class="btn btn-primary" onclick="openInviteModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Invite Member
+        </button>
+      </div>
+    </div>
+
+    <!-- Member Stats -->
+    <div class="stats-grid member-stats">
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #3b82f6">👥</div>
+        <div class="stat-info">
+          <div class="stat-value"><%= members?.filter(m => m.status === 'active').length || 0 %></div>
+          <div class="stat-label">Active Members</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #f59e0b">⏳</div>
+        <div class="stat-info">
+          <div class="stat-value"><%= members?.filter(m => m.status === 'invited').length || 0 %></div>
+          <div class="stat-label">Pending Invites</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #ef4444">🚫</div>
+        <div class="stat-info">
+          <div class="stat-value"><%= members?.filter(m => m.status === 'suspended').length || 0 %></div>
+          <div class="stat-label">Suspended</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #8b5cf6">👑</div>
+        <div class="stat-info">
+          <div class="stat-value"><%= members?.filter(m => m.role === 'owner').length || 0 %></div>
+          <div class="stat-label">Owners</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Members Table -->
+    <div class="card members-table-card">
+      <div class="card-header">
+        <h3 class="card-title">Team Members</h3>
+      </div>
+      <div class="card-body p-0">
+        <% if (members && members.length > 0) { %>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                  <th>Last Active</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% members.forEach(function(member) { %>
+                  <tr data-user-id="<%= member.user_id %>">
+                    <td>
+                      <div class="member-info">
+                        <div class="member-avatar">
+                          <%= member.username?.charAt(0)?.toUpperCase() || 'U' %>
+                        </div>
+                        <div class="member-details">
+                          <div class="member-name"><%= member.username %></div>
+                          <div class="member-email"><%= member.email %></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <select class="role-select" data-user-id="<%= member.user_id %>" <%= member.role === 'owner' ? 'disabled' : '' %> onchange="updateRole(this)">
+                        <option value="owner" <%= member.role === 'owner' ? 'selected' : '' %>>Owner</option>
+                        <option value="admin" <%= member.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                        <option value="manager" <%= member.role === 'manager' ? 'selected' : '' %>>Manager</option>
+                        <option value="developer" <%= member.role === 'developer' ? 'selected' : '' %>>Developer</option>
+                        <option value="member" <%= member.role === 'member' ? 'selected' : '' %>>Member</option>
+                        <option value="viewer" <%= member.role === 'viewer' ? 'selected' : '' %>>Viewer</option>
+                      </select>
+                    </td>
+                    <td>
+                      <span class="status-badge <%= member.status %>">
+                        <% if (member.status === 'active') { %>●<% } else if (member.status === 'invited') { %>○<% } else { %>✕<% } %>
+                        <%= member.status.charAt(0).toUpperCase() + member.status.slice(1) %>
+                      </span>
+                    </td>
+                    <td><%= member.joined_at ? new Date(member.joined_at).toLocaleDateString() : 'N/A' %></td>
+                    <td><%= member.last_active ? new Date(member.last_active).toLocaleDateString() : 'Never' %></td>
+                    <td>
+                      <div class="action-buttons">
+                        <% if (member.role !== 'owner') { %>
+                          <button class="btn btn-ghost btn-sm" onclick="editPermissions('<%= member.user_id %>', '<%= member.username %>')" title="Edit Permissions">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                          </button>
+                          <button class="btn btn-ghost btn-sm text-danger" onclick="removeMember('<%= member.user_id %>', '<%= member.username %>')" title="Remove Member">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                          </button>
+                        <% } else { %>
+                          <span class="text-muted">Owner</span>
+                        <% } %>
+                      </div>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <h3>No Members Yet</h3>
+            <p>Invite team members to collaborate in this workspace</p>
+            <button class="btn btn-primary" onclick="openInviteModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Invite First Member
+            </button>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Role Permissions Reference -->
+    <div class="card role-permissions-card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span class="card-icon">🔐</span>
+          Role Permissions Reference
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Permission</th>
+                <th>Owner</th>
+                <th>Admin</th>
+                <th>Manager</th>
+                <th>Developer</th>
+                <th>Member</th>
+                <th>Viewer</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Manage Workspace</td><td>✓</td><td>✓</td><td>✗</td><td>✗</td><td>✗</td><td>✗</td></tr>
+              <tr><td>Manage Members</td><td>✓</td><td>✓</td><td>✓</td><td>✗</td><td>✗</td><td>✗</td></tr>
+              <tr><td>Manage Services</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✗</td><td>✗</td></tr>
+              <tr><td>Manage Domains</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✗</td><td>✗</td></tr>
+              <tr><td>Deploy Apps</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✗</td></tr>
+              <tr><td>Use Terminal</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✗</td></tr>
+              <tr><td>Manage Databases</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✗</td><td>✗</td></tr>
+              <tr><td>Manage Backups</td><td>✓</td><td>✓</td><td>✓</td><td>✗</td><td>✗</td><td>✗</td></tr>
+              <tr><td>Manage AI Agents</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✗</td><td>✗</td></tr>
+              <tr><td>Manage APIs</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✗</td><td>✗</td></tr>
+              <tr><td>View Logs</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+              <tr><td>View Resources</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="form-hint">Custom permissions can be assigned per member via the permissions editor.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Invite Modal -->
+  <div class="modal" id="inviteModal" role="dialog" aria-modal="true" aria-labelledby="inviteModalTitle">
+    <div class="modal-overlay" onclick="closeInviteModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="inviteModalTitle">Invite Member</h3>
+        <button class="modal-close" onclick="closeInviteModal()" aria-label="Close">&times;</button>
+      </div>
+      <form id="inviteForm" onsubmit="submitInvite(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="inviteEmail">Email Address *</label>
+            <input type="email" id="inviteEmail" name="email" required placeholder="user@example.com">
+          </div>
+          <div class="form-group">
+            <label for="inviteRole">Role *</label>
+            <select id="inviteRole" name="role" required>
+              <option value="admin">Admin</option>
+              <option value="manager">Manager</option>
+              <option value="developer" selected>Developer</option>
+              <option value="member">Member</option>
+              <option value="viewer">Viewer</option>
+            </select>
+            <small class="form-hint">Owner role cannot be assigned via invite</small>
+          </div>
+          <div class="form-group">
+            <label for="inviteMessage">Message (optional)</label>
+            <textarea id="inviteMessage" name="message" rows="3" placeholder="Welcome to the team..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeInviteModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Send Invitation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Permissions Modal -->
+  <div class="modal" id="permissionsModal" role="dialog" aria-modal="true" aria-labelledby="permissionsModalTitle">
+    <div class="modal-overlay" onclick="closePermissionsModal()"></div>
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h3 id="permissionsModalTitle">Edit Permissions for <span id="permUsername"></span></h3>
+        <button class="modal-close" onclick="closePermissionsModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" id="permissionsModalBody">
+        <p class="text-center text-muted">Loading permissions...</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closePermissionsModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="savePermissions()">Save Permissions</button>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>
+  <script>
+    // Invite modal
+    function openInviteModal() {
+      document.getElementById('inviteModal').classList.add('show');
+      document.getElementById('inviteEmail').focus();
+    }
+    function closeInviteModal() {
+      document.getElementById('inviteModal').classList.remove('show');
+      document.getElementById('inviteForm').reset();
+    }
+
+    // Permissions modal
+    async function editPermissions(userId, username) {
+      document.getElementById('permUsername').textContent = username;
+      document.getElementById('permissionsModal').classList.add('show');
+      document.getElementById('permissionsModalBody').innerHTML = '<p class="text-center text-muted">Loading permissions...</p>';
+      
+      try {
+        const res = await fetch('/workspaces/<%= workspace.id %>/permissions?userId=' + userId);
+        const data = await res.json();
+        renderPermissions(data.permissions, userId);
+      } catch (err) {
+        console.error(err);
+        document.getElementById('permissionsModalBody').innerHTML = '<p class="text-center text-danger">Failed to load permissions</p>';
+      }
+    }
+    function closePermissionsModal() {
+      document.getElementById('permissionsModal').classList.remove('show');
+    }
+
+    function renderPermissions(permissions, userId) {
+      const serviceTypes = ['websites', 'apps', 'domains', 'databases', 'bots', 'workflows', 'ai', 'storage', 'email', 'backups', 'monitoring', 'security', 'billing', 'settings'];
+      const actions = ['create', 'read', 'update', 'delete', 'deploy', 'manage', 'backup', 'restore', 'logs', 'terminal'];
+      
+      let html = '<div class="permissions-grid">';
+      serviceTypes.forEach(service => {
+        html += '<div class="permission-service"><h4>' + service.charAt(0).toUpperCase() + service.slice(1) + '</h4><div class="permission-actions">';
+        actions.forEach(action => {
+          const permKey = service + ':' + action;
+          const hasPerm = permissions?.includes(permKey);
+          html += '<label class="permission-checkbox"><input type="checkbox" name="permissions" value="' + permKey + '" ' + (hasPerm ? 'checked' : '') + '><span>' + action + '</span></label>';
+        });
+        html += '</div></div>';
+      });
+      html += '</div><input type="hidden" id="permUserId" value="' + userId + '">';
+      document.getElementById('permissionsModalBody').innerHTML = html;
+    }
+
+    async function savePermissions() {
+      const userId = document.getElementById('permUserId').value;
+      const checkboxes = document.querySelectorAll('#permissionsModalBody input[name="permissions"]:checked');
+      const permissions = Array.from(checkboxes).map(cb => cb.value);
+      
+      try {
+        const res = await fetch('/workspaces/<%= workspace.id %>/permissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, permissions })
+        });
+        if (res.ok) {
+          closePermissionsModal();
+          window.location.reload();
+        } else {
+          alert('Failed to save permissions');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error saving permissions');
+      }
+    }
+
+    async function updateRole(select) {
+      const userId = select.dataset.userId;
+      const role = select.value;
+      try {
+        const res = await fetch('/workspaces/<%= workspace.id %>/members/' + userId, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role })
+        });
+        if (!res.ok) {
+          alert('Failed to update role');
+          window.location.reload();
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error updating role');
+        window.location.reload();
+      }
+    }
+
+    async function removeMember(userId, username) {
+      if (!confirm('Remove ' + username + ' from this workspace?')) return;
+      try {
+        const res = await fetch('/workspaces/<%= workspace.id %>/members/' + userId, { method: 'DELETE' });
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          alert('Failed to remove member');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error removing member');
+      }
+    }
+
+    async function submitInvite(event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const data = Object.fromEntries(formData);
+      
+      try {
+        const res = await fetch('/workspaces/<%= workspace.id %>/members', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (res.ok) {
+          closeInviteModal();
+          window.location.reload();
+        } else {
+          const err = await res.json();
+          alert(err.error || 'Failed to send invitation');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error sending invitation');
+      }
+    }
+  </script>
+  <style>
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+    .page-header-left { display: flex; align-items: center; gap: 1rem; }
+    .page-title { margin: 0; font-size: 1.5rem; }
+    .page-subtitle { margin: 0.25rem 0 0; color: var(--text-secondary); }
+    .member-stats { margin-bottom: 1.5rem; }
+    .members-table-card { overflow: hidden; }
+    .table-responsive { overflow-x: auto; }
+    .table { width: 100%; border-collapse: collapse; }
+    .table th, .table td { padding: 0.875rem 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+    .table th { font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); background: var(--bg-secondary); }
+    .table tr:last-child td { border-bottom: none; }
+    .member-info { display: flex; align-items: center; gap: 0.75rem; }
+    .member-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem; }
+    .member-name { font-weight: 500; }
+    .member-email { font-size: 0.8125rem; color: var(--text-muted); }
+    .role-select { padding: 0.375rem 0.625rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--input-bg); color: var(--text-primary); font-size: 0.8125rem; min-width: 140px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.625rem; border-radius: 999px; font-size: 0.75rem; font-weight: 500; }
+    .status-badge.active { background: #dcfce7; color: #166534; }
+    .status-badge.invited { background: #fef3c7; color: #92400e; }
+    .status-badge.suspended { background: #fee2e2; color: #991b1b; }
+    .action-buttons { display: flex; gap: 0.25rem; }
+    .btn-ghost { background: transparent; border: none; padding: 0.375rem; border-radius: 6px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+    .btn-ghost:hover { background: var(--bg-secondary); color: var(--text-primary); }
+    .btn-ghost.text-danger:hover { background: #fee2e2; color: #ef4444; }
+    .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); }
+    .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .empty-state h3 { margin: 0 0 0.5rem; color: var(--text-primary); }
+    .modal { display: none; position: fixed; inset: 0; z-index: 1000; }
+    .modal.show { display: flex; align-items: center; justify-content: center; }
+    .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
+    .modal-content { position: relative; background: var(--card-bg); border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+    .modal-lg { max-width: 800px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); }
+    .modal-header h3 { margin: 0; }
+    .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+    .modal-body { padding: 1.5rem; overflow-y: auto; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); }
+    .permissions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; max-height: 50vh; overflow-y: auto; }
+    .permission-service h4 { margin: 0 0 0.5rem; font-size: 0.8125rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+    .permission-actions { display: flex; flex-direction: column; gap: 0.375rem; }
+    .permission-checkbox { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; cursor: pointer; }
+    .permission-checkbox input { accent-color: var(--primary); }
+    .role-permissions-card { margin-top: 1.5rem; }
+    .table-sm th, .table-sm td { padding: 0.5rem; font-size: 0.8125rem; }
+  </style>
+</body>
+</html>

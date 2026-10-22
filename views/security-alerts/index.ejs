@@ -1,0 +1,27 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><%= pageTitle %></h1>
+    <% if (typeof pageSubtitle !== 'undefined' && pageSubtitle) { %>
+      <p class="page-subtitle"><%= pageSubtitle %></p>
+    <% } %>
+  </div>
+  <div class="page-actions">
+    <div class="btn-group">
+      <a href="/security-alerts?severity=critical" class="btn btn-<%= (currentSeverity === 'critical') ? 'primary' : 'ghost' %>">Critical</a>
+      <a href="/security-alerts?severity=warning" class="btn btn-<%= (currentSeverity === 'warning') ? 'primary' : 'ghost' %>">Warning</a>
+      <a href="/security-alerts?severity=info" class="btn btn-<%= (currentSeverity === 'info') ? 'primary' : 'ghost' %>">Info</a>
+      <a href="/security-alerts?unacknowledged=true" class="btn btn-<%= showUnacknowledged ? 'primary' : 'ghost' %>">Unacknowledged <span class="badge badge-danger"><%= unackCount %></span></a>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <% if (typeof loadError !== 'undefined' && loadError) { %>
+    <div class="card-body">
+      <div class="alert alert-danger"><span class="alert-icon">!</span><div><%= loadError %></div></div>
+    </div>
+  <% } %>
+  <div class="card-body">
+    <%- include('../partials/resourceTable', { rows: alerts, columns: columns, module: 'security-alerts', prefix: 'security-alerts' }); %>
+  </div>
+</div>

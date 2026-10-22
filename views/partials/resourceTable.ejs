@@ -1,0 +1,95 @@
+<%
+  // Generic resource table renderer.
+  // Expects: rows (array), columns (array), module, prefix
+  const cols = typeof columns !== 'undefined' && columns ? columns : [];
+  const list = typeof rows !== 'undefined' && rows ? rows : [];
+  const prefix = typeof module !== 'undefined' ? module : '';
+  const tone = (status) => {
+    const map = {
+      active: 'success', running: 'success', online: 'success', completed: 'success',
+      healthy: 'success', deployed: 'success', paid: 'success', approved: 'success',
+      resolved: 'success', enabled: 'success', connected: 'success', available: 'success',
+      pending: 'warning', provisioning: 'warning', processing: 'warning', queued: 'warning',
+      trial: 'warning', draft: 'warning', urgent: 'danger', high: 'warning',
+      inactive: 'muted', stopped: 'muted', archived: 'muted', disabled: 'muted',
+      cancelled: 'muted', closed: 'muted',
+      failed: 'danger', error: 'danger', suspended: 'danger', overdue: 'danger', rejected: 'danger'
+    };
+    return map[String(status || '').toLowerCase()] || 'info';
+  };
+  const fmtDate = (value) => {
+    if (!value) return '—';
+    const d = new Date(String(value).replace(' ', 'T'));
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: '2-digit' });
+  };
+  const display = (row, col) => {
+    let value = row[col.key];
+    if (col.map) value = col.map(value, row);
+    if (col.custom === 'dns') {
+      try {
+        const parsed = Array.isArray(value) ? value : JSON.parse(value || '[]');
+        return (parsed.length || 0) + ' record' + (parsed.length === 1 ? '' : 's');
+      } catch (err) { return '0 records'; }
+    }
+    if (col.custom === 'price') {
+      const amount = Number(value || 0);
+      const currency = row.currency || 'USD';
+      return currency + ' ' + amount.toFixed(2);
+    }
+    if (col.date) return fmtDate(value);
+    if (value === null || value === undefined || value === '') return '—';
+    return value;
+  };
+%>
+<% if (!list.length) { %>
+  <div class="empty-state">
+    <div class="empty-icon">◇</div>
+    <h3>Nothing here yet</h3>
+    <p>No <%= (typeof pageTitle !== 'undefined' ? pageTitle : 'records') %> have been created. Add your first one to get started.</p>
+    <a href="/<%= prefix %>/create" class="btn btn-primary">Create new</a>
+  </div>
+<% } else { %>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width:34px;"><input type="checkbox" data-table-select-all aria-label="Select all"></th>
+          <% cols.forEach(function(col) { %>
+            <th><%= col.label %></th>
+          <% }); %>
+          <th class="col-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% list.forEach(function(row) { %>
+          <tr>
+            <td><input type="checkbox" data-row-check aria-label="Select row"></td>
+            <% cols.forEach(function(col) { %>
+              <td class="<%= col.primary ? 'cell-primary' : '' %>">
+                <% if (col.status) { %>
+                  <span class="badge badge-<%= tone(col.map ? col.map(row[col.key], row) : row[col.key]) %>">
+                    <%= String(col.map ? col.map(row[col.key], row) : (row[col.key] === null || row[col.key] === undefined ? 'unknown' : row[col.key])) %>
+                  </span>
+                <% } else if (col.badge) { %>
+                  <span class="badge badge-info badge-plain"><%= display(row, col) %></span>
+                <% } else { %>
+                  <%= display(row, col) %>
+                <% } %>
+              </td>
+            <% }); %>
+            <td class="col-actions">
+              <div class="btn-group">
+                <a href="/<%= prefix %>/<%= row.id %>/edit" class="btn btn-secondary btn-sm">Edit</a>
+                <form action="/<%= prefix %>/<%= row.id %>/delete" method="POST" data-confirm="Delete this record? This cannot be undone.">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+<% } %>

@@ -1,0 +1,106 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">API keys</h1>
+    <p class="page-subtitle">Programmatic access to the LeaxPanel REST API</p>
+  </div>
+  <div class="page-actions">
+    <a href="/apikeys/usage" class="btn btn-secondary">Usage log</a>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:var(--sp-4);">
+  <div class="card-header">
+    <div>
+      <h3>Create a new key</h3>
+      <p>Keys are shown once and stored as a SHA-256 hash</p>
+    </div>
+  </div>
+  <div class="card-body">
+    <form action="/apikeys/create" method="POST" class="form-grid" data-loading>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="form-group">
+        <label class="form-label" for="name">Key name</label>
+        <input class="form-control" type="text" id="name" name="name" placeholder="Production deployment" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="permissions">Permissions</label>
+        <input class="form-control" type="text" id="permissions" name="permissions" value="read" placeholder="read,write">
+        <span class="form-hint">Comma separated list of scopes.</span>
+      </div>
+      <div class="form-group" style="display:flex;align-items:flex-end;">
+        <button type="submit" class="btn btn-primary">Create key</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h3>Your keys</h3>
+      <p><%= (keys || []).length %> key(s) issued</p>
+    </div>
+  </div>
+  <div class="card-body">
+    <% if (!keys || !keys.length) { %>
+      <div class="empty-state">
+        <div class="empty-icon">◈</div>
+        <h3>No API keys yet</h3>
+        <p>Create a key to automate deployments and integrations.</p>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Permissions</th>
+              <th>Last used</th>
+              <th>Created</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% keys.forEach(function(k) { %>
+              <tr>
+                <td class="cell-primary"><%= k.name %></td>
+                <td><span class="badge badge-info badge-plain"><%= k.permissions || 'read' %></span></td>
+                <td><%= k.last_used_at || 'Never' %></td>
+                <td><%= k.created_at %></td>
+                <td class="col-actions">
+                  <form action="/apikeys/<%= k.id %>/delete" method="POST" data-confirm="Revoke this API key?">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn btn-danger btn-sm">Revoke</button>
+                  </form>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<div class="card" style="margin-top:var(--sp-4);">
+  <div class="card-header">
+    <div>
+      <h3>Using the API</h3>
+      <p>Send your key in the X-API-Key header</p>
+    </div>
+  </div>
+  <div class="card-body">
+    <pre class="code-block">curl -H "X-API-Key: lx_your_key_here" \\
+     http://localhost:3000/api/stats
+
+# List a resource
+curl -H "X-API-Key: lx_your_key_here" \\
+     "http://localhost:3000/api/apps?limit=10"
+
+# Create a record
+curl -X POST -H "X-API-Key: lx_your_key_here" \\
+     -H "Content-Type: application/json" \\
+     -d '{"name":"my-app","type":"nodejs"}' \\
+     http://localhost:3000/api/apps</pre>
+  </div>
+</div>

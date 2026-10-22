@@ -1,0 +1,75 @@
+<% 
+  const loginSettings = (typeof panelSettings !== 'undefined' && panelSettings) ? panelSettings : {};
+  const brandName = loginSettings.panel_name || 'LeaxPanel';
+  const brandTagline = loginSettings.panel_tagline || 'Host Anything. Manage Everything. Deploy Anywhere.';
+  const primaryColor = loginSettings.primary_color || '#7c5cff';
+  const accentColor = loginSettings.accent_color || '#22d3ee';
+  const loginLogo = loginSettings.login_logo || null;
+  const loginBgColor = loginSettings.login_bg_color || null;
+  const loginBgImage = loginSettings.login_bg_image || null;
+  const loginVideoBg = loginSettings.login_video_bg || null;
+  const loginTitle = loginSettings.login_title || 'Welcome back';
+  const loginSubtitle = loginSettings.login_subtitle || 'Sign in to your dashboard';
+  const loginFooter = loginSettings.login_footer || 'Powered by LeaxPanel';
+%>
+<style>
+  :root {
+    --primary: <%= primaryColor %>;
+    --accent: <%= accentColor %>;
+    --primary-soft: <%= primaryColor %>20;
+    --primary-2: <%= primaryColor %>cc;
+    --accent-soft: <%= accentColor %>20;
+    <%- loginBgColor ? '--bg: ' + loginBgColor + ';' : '' %>
+    <%- loginBgImage ? '--bg-image: url(' + loginBgImage + ');' : '' %>
+  }
+</style>
+
+<div class="auth-page premium-login" style="<%- loginBgImage ? 'background-image: var(--bg-image); background-size: cover; background-position: center; background-attachment: fixed;' : '' %><%- loginVideoBg ? '' : '' %>">
+  <%- loginVideoBg ? '<video class="auth-video-bg" autoplay muted loop playsinline><source src="' + loginVideoBg + '" type="video/mp4"></video>' : '' %>
+  <%- loginBgImage ? '<div class="auth-bg-overlay"></div>' : '' %>
+  
+  <div class="auth-card glass-card">
+    <div class="auth-logo">
+      <%- loginLogo ? '<img src="' + loginLogo + '" alt="' + escapeHtml(brandName) + '" class="auth-logo-img">' : '<span class="brand-mark">⚡</span>' %>
+      <h1 class="auth-title"><%= loginTitle %></h1>
+      <p class="auth-sub"><%= loginSubtitle %></p>
+    </div>
+
+    <form action="/login" method="POST" data-loading>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email address</label>
+        <input class="form-control" type="email" id="email" name="email" placeholder="you@example.com" required autofocus autocomplete="email">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input class="form-control" type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" style="--primary: <%= primaryColor %>;">Sign in</button>
+    </form>
+
+    <% if (typeof registrationEnabled !== 'undefined' && registrationEnabled) { %>
+      <p class="auth-hint">No account yet? <a href="/register">Create one</a></p>
+    <% } %>
+
+    <div class="auth-foot">
+      <span><%= loginFooter %></span>
+      <a href="https://github.com/netblood/LeaxPanel-OS-" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Add animated gradient border to auth card
+  const card = document.querySelector('.auth-card');
+  if (card) {
+    let angle = 0;
+    setInterval(() => {
+      angle = (angle + 1) % 360;
+      card.style.setProperty('--border-angle', angle + 'deg');
+    }, 50);
+  }
+</script>

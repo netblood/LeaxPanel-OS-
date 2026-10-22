@@ -1,0 +1,18 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><%= pageTitle %></h1>
+    <p class="page-subtitle">Update the ai hosting configuration.</p>
+  </div>
+  <div class="page-actions">
+    <a href="/ai-hosting" class="btn btn-ghost">Back to list</a>
+  </div>
+</div>
+
+<%- include('../partials/resourceForm', {
+  fields: fields,
+  values: values,
+  action: formAction,
+  submitLabel: 'Save changes',
+  cancelHref: '/ai-hosting',
+  module: module
+}); %>

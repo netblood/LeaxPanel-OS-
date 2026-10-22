@@ -1,0 +1,18 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><%= pageTitle %></h1>
+    <p class="page-subtitle">Add a new login page setting.</p>
+  </div>
+  <div class="page-actions">
+    <a href="/login-page" class="btn btn-ghost">Back to list</a>
+  </div>
+</div>
+
+<%- include('../partials/resourceForm', {
+  fields: fields,
+  values: values,
+  action: formAction,
+  submitLabel: 'Create Setting',
+  cancelHref: '/login-page',
+  module: module
+}); %>

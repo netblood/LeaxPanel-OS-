@@ -1,0 +1,24 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="brand-mark">⚡</span>
+      <h1 class="auth-title">Two-factor verification</h1>
+      <p class="auth-sub">Enter the 6-digit code from your authenticator app</p>
+    </div>
+
+    <form action="/2fa/verify" method="POST" data-loading>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div class="form-group">
+        <label class="form-label" for="token">Verification code</label>
+        <input class="form-control text-center text-mono" type="text" id="token" name="token"
+               placeholder="000000" required autofocus maxlength="6" inputmode="numeric"
+               style="letter-spacing:8px;font-size:20px;height:52px;">
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Verify</button>
+    </form>
+
+    <p class="auth-hint"><a href="/login">Back to sign in</a></p>
+  </div>
+</div>

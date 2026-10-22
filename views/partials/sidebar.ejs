@@ -1,0 +1,136 @@
+<%
+  const panelName = (typeof panelSettings !== 'undefined' && panelSettings && panelSettings.panel_name) ? panelSettings.panel_name : 'LeaxPanel';
+  const tagline = (typeof panelSettings !== 'undefined' && panelSettings && panelSettings.panel_tagline) ? panelSettings.panel_tagline : 'Host Anything. Manage Everything. Deploy Anywhere.';
+  const primary = (typeof panelSettings !== 'undefined' && panelSettings && panelSettings.primary_color) ? panelSettings.primary_color : '#7c5cff';
+  const accent = (typeof panelSettings !== 'undefined' && panelSettings && panelSettings.accent_color) ? panelSettings.accent_color : '#22d3ee';
+%>
+<style>
+  :root {
+    --primary: <%= primary %>;
+    --accent: <%= accent %>;
+  }
+</style>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <a href="/dashboard" class="brand-link">
+      <span class="brand-mark">⚡</span>
+      <span class="brand-text">
+        <strong><%= panelName %></strong>
+        <small>Cloud Platform</small>
+      </span>
+    </a>
+    <button class="sidebar-collapse" id="sidebarCollapse" aria-label="Collapse sidebar" title="Collapse sidebar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+  </div>
+
+  <nav class="sidebar-nav" aria-label="Main navigation">
+    <% const groups = [
+      { label: 'Overview', items: [
+        { href: '/dashboard', label: 'Dashboard', icon: 'grid', badge: null },
+        { href: '/monitoring', label: 'Monitoring', icon: 'activity', badge: null },
+        { href: '/backups', label: 'Backups', icon: 'database', badge: null }
+      ]},
+      { label: 'Infrastructure', items: [
+        { href: '/domains', label: 'Domains & DNS', icon: 'globe', badge: null },
+        { href: '/website', label: 'Websites', icon: 'layout', badge: null },
+        { href: '/apps', label: 'Applications', icon: 'box', badge: null },
+        { href: '/terminal', label: 'Terminal Center', icon: 'terminal', badge: null },
+        { href: '/file-manager', label: 'File Manager', icon: 'folder', badge: null },
+        { href: '/storage', label: 'Storage', icon: 'harddrive', badge: null },
+        { href: '/doctor', label: 'LeaxPanel Doctor', icon: 'stethoscope', badge: null }
+      ]},
+      { label: 'Applications', items: [
+        { href: '/n8n', label: 'N8N Workflows', icon: 'workflow', badge: null },
+        { href: '/services', label: 'Services', icon: 'layers', badge: null }
+      ]},
+      { label: 'Bots', items: [
+        { href: '/telegram', label: 'Telegram', icon: 'send', badge: null },
+        { href: '/discord', label: 'Discord', icon: 'message', badge: null },
+        { href: '/whatsapp', label: 'WhatsApp', icon: 'phone', badge: null },
+        { href: '/bots', label: 'All Bots', icon: 'bot', badge: null }
+      ]},
+      { label: 'AI', items: [
+        { href: '/ai', label: 'AI Agents', icon: 'sparkles', badge: null },
+        { href: '/ai-settings', label: 'AI Providers', icon: 'cpu', badge: null },
+        { href: '/ai-hosting', label: 'AI Hosting', icon: 'server', badge: null }
+      ]},
+      { label: 'Data & Services', items: [
+        { href: '/databases', label: 'Databases', icon: 'database', badge: null },
+        { href: '/email', label: 'Email', icon: 'mail', badge: null },
+        { href: '/communication', label: 'Communication', icon: 'chat', badge: null },
+        { href: '/cloudflare', label: 'Cloudflare', icon: 'shield', badge: null }
+      ]},
+      { label: 'Business', items: [
+        { href: '/requests', label: 'Service Requests', icon: 'ticket', badge: (typeof pendingRequests !== 'undefined' && pendingRequests > 0) ? pendingRequests : null },
+        { href: '/billing', label: 'Billing', icon: 'credit-card', badge: null },
+        { href: '/marketplace', label: 'Marketplace', icon: 'store', badge: null }
+      ]},
+      { label: 'Administration', items: [
+        { href: '/users', label: 'Users', icon: 'users', badge: null },
+        { href: '/security', label: 'Security', icon: 'lock', badge: null },
+        { href: '/white-label', label: 'White Label', icon: 'palette', badge: null },
+        { href: '/platform', label: 'Platform', icon: 'sliders', badge: null },
+        { href: '/settings', label: 'Settings', icon: 'settings', badge: null },
+        { href: '/doctor', label: 'LeaxPanel Doctor', icon: 'stethoscope', badge: null }
+            ]},
+
+            { label: 'AI Center', items: [
+              { href: '/ai', label: 'AI Agents', icon: 'bot', badge: null },
+              { href: '/ai-settings', label: 'AI Providers', icon: 'settings', badge: null },
+              { href: '/ai-hosting', label: 'AI Hosting', icon: 'cpu', badge: null },
+              { href: '/ai-conversations', label: 'AI Conversations', icon: 'message-circle', badge: null }
+            ]},
+
+            { label: 'API Center', items: [
+              { href: '/apikeys', label: 'API Keys', icon: 'key', badge: null },
+              { href: '/apikeys/usage', label: 'API Usage', icon: 'bar-chart-2', badge: null },
+              { href: '/api-endpoints', label: 'API Endpoints', icon: 'code-2', badge: null },
+              { href: '/webhooks', label: 'Webhooks', icon: 'zap', badge: null },
+              { href: '/webhook-deliveries', label: 'Webhook Deliveries', icon: 'mail', badge: null }
+            ]},
+
+            { label: 'Security', items: [
+              { href: '/security/audit', label: 'Audit Logs', icon: 'file-text', badge: null },
+              { href: '/security-alerts', label: 'Security Alerts', icon: 'alert-triangle', badge: null },
+              { href: '/login-page', label: 'Login Page', icon: 'lock', badge: null },
+              { href: '/login-overrides', label: 'Login Overrides', icon: 'shield', badge: null },
+              { href: '/terminal-permissions', label: 'Terminal Permissions', icon: 'terminal', badge: null },
+              { href: '/terminal-history', label: 'Terminal History', icon: 'clock', badge: null }
+            ]}
+    ]; %>
+
+    <% groups.forEach(function(group) { %>
+      <div class="nav-group">
+        <div class="nav-group-label"><%= group.label %></div>
+        <% group.items.forEach(function(item) {
+             const active = (currentPath === item.href) || (currentPath && currentPath.startsWith(item.href + '/')); %>
+          <a href="<%= item.href %>" class="nav-item <%= active ? 'active' : '' %>" title="<%= item.label %>">
+            <span class="nav-icon" data-icon="<%= item.icon %>"></span>
+            <span class="nav-label"><%= item.label %></span>
+            <% if (item.badge !== null && item.badge > 0) { %>
+              <span class="nav-pill"><%= item.badge %></span>
+            <% } %>
+          </a>
+        <% }); %>
+      </div>
+    <% }); %>
+  </nav>
+
+    <% if (typeof userWorkspaces !== 'undefined' && userWorkspaces) { %>
+      <%- include('partials/workspaceSwitcher') %>
+    <% } %>
+
+    <div class="sidebar-footer">
+    <div class="sidebar-status">
+      <span class="status-dot online"></span>
+      <span class="nav-label">System Online</span>
+    </div>
+    <a href="/doctor" class="nav-item nav-item-sm">
+      <span class="nav-icon" data-icon="stethoscope"></span>
+      <span class="nav-label">Health Check</span>
+    </a>
+  </div>
+</aside>

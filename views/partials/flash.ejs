@@ -1,0 +1,31 @@
+<%
+  const successMsgs = Array.isArray(success) ? success : (success ? [success] : []);
+  const errorMsgs = Array.isArray(error) ? error : (error ? [error] : []);
+  const errorList = Array.isArray(errors) ? errors : (errors ? [errors] : []);
+%>
+<% if (successMsgs.length) { %>
+  <% successMsgs.forEach(function(msg) { %>
+    <div class="alert alert-success" role="status">
+      <span class="alert-icon">✓</span>
+      <div><%= msg %></div>
+    </div>
+  <% }); %>
+<% } %>
+<% if (errorMsgs.length) { %>
+  <% errorMsgs.forEach(function(msg) { %>
+    <div class="alert alert-danger" role="alert">
+      <span class="alert-icon">!</span>
+      <div><%= msg %></div>
+    </div>
+  <% }); %>
+<% } %>
+<% if (errorList.length) { %>
+  <div class="alert alert-danger" role="alert">
+    <span class="alert-icon">!</span>
+    <div>
+      <ul style="margin:0;padding-left:16px;">
+        <% errorList.forEach(function(msg) { %><li><%= msg %></li><% }); %>
+      </ul>
+    </div>
+  </div>
+<% } %>

@@ -1,0 +1,291 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><%= pageTitle %></h1>
+    <% if (typeof pageSubtitle !== 'undefined' && pageSubtitle) { %>
+      <p class="page-subtitle"><%= pageSubtitle %></p>
+    <% } %>
+  </div>
+  <div class="page-actions">
+    <a href="/cloudflare/nginx-config" class="btn btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      Export Nginx Config
+    </a>
+    <% if (!cloudflareConfigured) { %>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#configureModal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Configure Cloudflare
+      </button>
+    <% } %>
+  </div>
+</div>
+
+<% if (typeof success !== 'undefined' && success && success.length) { %>
+  <% success.forEach(function(msg) { %>
+    <div class="alert alert-success"><span class="alert-icon">✓</span><div><%= msg %></div></div>
+  <% }); %>
+<% } %>
+<% if (typeof error !== 'undefined' && error && error.length) { %>
+  <% error.forEach(function(msg) { %>
+    <div class="alert alert-danger"><span class="alert-icon">!</span><div><%= msg %></div></div>
+  <% }); %>
+<% } %>
+
+<!-- Cloudflare Configuration Modal -->
+<div class="modal fade" id="configureModal" tabindex="-1" aria-labelledby="configureModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="configureModalLabel">Configure Cloudflare</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="/cloudflare/configure" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="modal-body">
+          <div class="form-group mb-3">
+            <label class="form-label" for="api_token">API Token <span class="req">*</span></label>
+            <input class="form-control" type="password" id="api_token" name="api_token" placeholder="Enter your Cloudflare API Token" required>
+            <span class="form-hint">Create a token with Zone:DNS:Edit permissions at <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank">dash.cloudflare.com/profile/api-tokens</a></span>
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label" for="zone_id">Zone ID <span class="req">*</span></label>
+            <input class="form-control" type="text" id="zone_id" name="zone_id" placeholder="Zone ID from Cloudflare dashboard" required>
+            <span class="form-hint">Find Zone ID on your domain overview page in Cloudflare</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Connect</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<% if (!cloudflareConfigured) { %>
+  <div class="card" style="margin-bottom:var(--sp-4);">
+    <div class="card-body text-center py-5">
+      <div class="empty-icon" style="font-size:3rem;">☁</div>
+      <h3>Cloudflare Not Connected</h3>
+      <p class="text-muted">Connect Cloudflare to enable automatic DNS provisioning and SSL for your services.</p>
+      <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#configureModal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="me-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Connect Cloudflare
+      </button>
+    </div>
+  </div>
+<% } else { %>
+  <!-- Connection Status -->
+  <div class="card" style="margin-bottom:var(--sp-4);">
+    <div class="card-header">
+      <h4>Connection Status</h4>
+    </div>
+    <div class="card-body">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+          <strong>Zone:</strong> <%= zoneName || 'Unknown' %> (<%= zoneId %>)
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <span class="badge badge-<%= cloudflareValidated ? 'success' : 'danger' %>">
+            <%= cloudflareValidated ? '✓ Connected & Validated' : '✗ Connection Failed' %>
+          </span>
+          <a href="/cloudflare/nginx-config" class="btn btn-secondary btn-sm">Export Nginx Config</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DNS Records -->
+  <div class="card" style="margin-bottom:var(--sp-4);">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <h4>DNS Records</h4>
+      <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createDnsModal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="me-1"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Add Record
+      </button>
+    </div>
+    <div class="card-body">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:34px;"><input type="checkbox" data-table-select-all aria-label="Select all"></th>
+              <th>Type</th>
+              <th>Name</th>
+              <th>Content</th>
+              <th>TTL</th>
+              <th>Proxied</th>
+              <th>Status</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (dnsRecords && dnsRecords.length) { %>
+              <% dnsRecords.forEach(function(record) { %>
+                <tr>
+                  <td><input type="checkbox" data-row-check aria-label="Select row"></td>
+                  <td><span class="badge badge-info"><%= record.type %></span></td>
+                  <td class="cell-primary"><%= record.name %></td>
+                  <td><%= record.content %></td>
+                  <td><%= record.ttl === 1 ? 'Auto' : record.ttl %></td>
+                  <td><%= record.proxied ? '<span class="badge badge-success">Proxied</span>' : '<span class="badge badge-muted">DNS Only</span>' %></td>
+                  <td><%= record.status || 'active' %></td>
+                  <td class="col-actions">
+                    <div class="btn-group">
+                      <button class="btn btn-secondary btn-sm" onclick="editDnsRecord('<%= record.id %>', '<%= record.type %>', '<%= record.name %>', '<%= record.content %>', '<%= record.ttl %>', '<%= record.proxied %>', '<%= record.comment || '' %>')">
+                        Edit
+                      </button>
+                      <form action="/cloudflare/dns/delete" method="POST" style="display:inline;" onsubmit="return confirm('Delete this DNS record? This cannot be undone.')">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="hidden" name="recordId" value="<%= record.id %>">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="8" class="text-center text-muted py-4">No DNS records found</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SSL Settings -->
+  <div class="card">
+    <div class="card-header">
+      <h4>SSL/TLS Settings</h4>
+      <p class="text-sm text-muted">Cloudflare provides automatic SSL for proxied domains</p>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group span-2">
+          <label class="form-label">SSL Mode</label>
+          <div class="form-control-plaintext">
+            <span class="badge badge-info">Full (Strict) - Recommended</span>
+            <span class="ms-2 text-muted">Cloudflare validates origin certificate</span>
+          </div>
+        </div>
+        <div class="form-group span-2">
+          <label class="form-label">Edge Certificates</label>
+          <div class="form-control-plaintext">
+            <span class="badge badge-success">Automatic</span>
+            <span class="ms-2 text-muted">Let's Encrypt / Cloudflare managed</span>
+          </div>
+        </div>
+        <div class="form-group span-2">
+          <label class="form-label">Always Use HTTPS</label>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="always_https" <%= panelSettings.cloudflare_always_https === 'true' ? 'checked' : '' %> onchange="toggleSslSetting('always_https', this.checked)">
+            <label class="form-check-label" for="always_https">Force HTTPS for all visitors</label>
+          </div>
+        </div>
+        <div class="form-group span-2">
+          <label class="form-label">Automatic HTTPS Rewrites</label>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="auto_https_rewrites" <%= panelSettings.cloudflare_auto_https_rewrites === 'true' ? 'checked' : '' %> onchange="toggleSslSetting('auto_https_rewrites', this.checked)">
+            <label class="form-check-label" for="auto_https_rewrites">Rewrite HTTP to HTTPS for resources</label>
+          </div>
+        </div>
+        <div class="form-group span-2">
+          <label class="form-label">Minimum TLS Version</label>
+          <select class="form-select" id="min_tls_version" onchange="toggleSslSetting('min_tls_version', this.value)">
+            <option value="1.2" <%= panelSettings.cloudflare_min_tls_version === '1.2' ? 'selected' : '' %>>TLS 1.2</option>
+            <option value="1.3" <%= panelSettings.cloudflare_min_tls_version === '1.3' ? 'selected' : '' %>>TLS 1.3</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+<% } %>
+
+<!-- Create/Edit DNS Record Modal -->
+<div class="modal fade" id="createDnsModal" tabindex="-1" aria-labelledby="createDnsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createDnsModalLabel">Add DNS Record</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="/cloudflare/dns/create" method="POST" id="dnsForm">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="modal-body">
+          <div class="form-group mb-3">
+            <label class="form-label" for="dns_type">Type <span class="req">*</span></label>
+            <select class="form-select" id="dns_type" name="type" required>
+              <option value="A">A</option>
+              <option value="AAAA">AAAA</option>
+              <option value="CNAME" selected>CNAME</option>
+              <option value="TXT">TXT</option>
+              <option value="MX">MX</option>
+            </select>
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label" for="dns_name">Name <span class="req">*</span></label>
+            <input class="form-control" type="text" id="dns_name" name="name" placeholder="subdomain" required>
+            <span class="form-hint">Subdomain prefix (e.g., 'api' for api.example.com)</span>
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label" for="dns_content">Content <span class="req">*</span></label>
+            <input class="form-control" type="text" id="dns_content" name="content" placeholder="target.example.com or IP address" required>
+            <span class="form-hint">Target domain or IP address</span>
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label" for="dns_ttl">TTL</label>
+            <select class="form-select" id="dns_ttl" name="ttl">
+              <option value="1" selected>Auto</option>
+              <option value="60">1 minute</option>
+              <option value="300">5 minutes</option>
+              <option value="3600">1 hour</option>
+              <option value="86400">1 day</option>
+            </select>
+          </div>
+          <div class="form-group mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="dns_proxied" name="proxied" checked>
+              <label class="form-check-label" for="dns_proxied">Proxy through Cloudflare (enables SSL, DDoS protection, caching)</label>
+            </div>
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label" for="dns_comment">Comment</label>
+            <input class="form-control" type="text" id="dns_comment" name="comment" placeholder="Optional description">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function editDnsRecord(id, type, name, content, ttl, proxied, comment) {
+  const form = document.getElementById('dnsForm');
+  form.action = '/cloudflare/dns/update';
+  form.innerHTML += '<input type="hidden" name="recordId" value="' + id + '">';
+  document.getElementById('dns_type').value = type;
+  document.getElementById('dns_name').value = name;
+  document.getElementById('dns_content').value = content;
+  document.getElementById('dns_ttl').value = ttl;
+  document.getElementById('dns_proxied').checked = proxied;
+  document.getElementById('dns_comment').value = comment;
+  document.getElementById('createDnsModalLabel').textContent = 'Edit DNS Record';
+  new bootstrap.Modal(document.getElementById('createDnsModal')).show();
+}
+
+function toggleSslSetting(key, value) {
+  fetch('/api/cloudflare/ssl/' + key, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': '<%= csrfToken %>'
+    },
+    body: JSON.stringify({ value: value })
+  }).catch(console.error);
+}
+</script>
