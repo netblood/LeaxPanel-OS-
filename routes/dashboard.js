@@ -177,6 +177,7 @@ router.get('/', async (req, res) => {
       });
 
       return res.render('workspaces/dashboard', {
+        layout: false,
         title: 'Dashboard',
         pageTitle: 'Dashboard',
         pageSubtitle: `Workspace: ${req.workspace.name}`,
