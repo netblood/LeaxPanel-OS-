@@ -1,10 +1,16 @@
 // Generic resource router factory.
 // Every panel module (domains, databases, bots, buckets, ...) shares the same
 // list / create / edit / delete shape, so it is defined once here and reused.
+//
+// URL-prefix vs view-prefix separation:
+//   prefix      - controls all generated URLs (formAction, redirects)
+//   viewPrefix  - controls the view render paths (${viewPrefix}/index etc.)
+// When viewPrefix is omitted, both fall back to `module`.
 const express = require('express');
 const db = require('../config/db');
 const logger = require('../utils/logger');
 const { handleValidationErrors, idParam } = require('../middleware/validation');
+const { param } = require('express-validator');
 
 function pick(row, keys) {
   const out = {};
@@ -67,6 +73,15 @@ function buildValidators(fields) {
   return rules;
 }
 
+function getColumns(tableName) {
+  try {
+    const rows = db.all(`PRAGMA table_info(${tableName})`);
+    return new Set(rows.map(r => r.name));
+  } catch (e) {
+    return new Set();
+  }
+}
+
 function createResourceRouter(config) {
   const {
     table,
@@ -82,8 +97,11 @@ function createResourceRouter(config) {
     listView,
     createView,
     editView,
-    softDelete = false,
-    mapRow = (row) => row,
+    showView,
+    idType = 'int',
+        primaryKey = 'id',
+        softDelete = false,
+        mapRow = (row) => row,
     defaults = {},
     beforeSave = null,
     afterSave = null,
@@ -93,11 +111,23 @@ function createResourceRouter(config) {
   } = config;
 
   const router = express.Router();
-  const prefix = viewPrefix || module;
+  const prefix = config.prefix || module;       // mount path used by routes/modules.js
+  const viewRoot = viewPrefix || module;        // view render paths
   const writableFields = fields
     .filter(f => !f.readonly)
     .map(f => f.name);
-  const timestamps = ['created_at', 'updated_at'];
+
+  // Detect actual table columns so we never emit a column that does not exist
+  // (e.g. doctor_scans, terminal_command_history, audit_logs lack updated_at).
+  const tableColumns = getColumns(table);
+  const hasCreated = tableColumns.has('created_at');
+  const hasUpdated = tableColumns.has('updated_at');
+
+  // Per-module id validator: TEXT PKs (terminal_sessions, security_alerts)
+  // cannot use express-validator's isInt; fall back to a non-empty string check.
+  const idValidator = idType === 'text'
+    ? [param('id').trim().notEmpty().withMessage('Invalid id')]
+    : idParam;
 
   function fetchRows() {
     try {
@@ -110,7 +140,7 @@ function createResourceRouter(config) {
 
   function renderList(res, extra = {}) {
     const mapped = extra.rows || fetchRows();
-    res.render(listView || `${prefix}/index`, {
+    res.render(listView || `${viewRoot}/index`, {
       title: title,
       pageTitle: title,
       pageSubtitle: subtitle,
@@ -140,7 +170,7 @@ function createResourceRouter(config) {
   });
 
   router.get('/create', (req, res) => {
-    res.render(createView || `${prefix}/create`, {
+    res.render(createView || `${viewRoot}/create`, {
       title: `Create ${title}`,
       pageTitle: `Create ${title}`,
       module,
@@ -177,11 +207,13 @@ function createResourceRouter(config) {
       const keys = Object.keys(data);
       const values = keys.map(k => data[k]);
       const placeholders = keys.map(() => '?').join(', ');
-      const hasCreated = timestamps.includes('created_at');
-      const hasUpdated = timestamps.includes('updated_at');
+      const tsCols = [];
+      const tsVals = [];
+      if (hasCreated) { tsCols.push('created_at'); tsVals.push("datetime('now')"); }
+      if (hasUpdated) { tsCols.push('updated_at'); tsVals.push("datetime('now')"); }
 
-      const sql = `INSERT INTO ${table} (${keys.join(', ')}, ${hasCreated ? "created_at" : ''}${hasCreated && hasUpdated ? ', ' : ''}${hasUpdated ? "updated_at" : ''})
-                  VALUES (${placeholders}, ${hasCreated ? "datetime('now')" : ''}${hasCreated && hasUpdated ? ', ' : ''}${hasUpdated ? "datetime('now')" : ''})`;
+      const sql = `INSERT INTO ${table} (${keys.join(', ')}${tsCols.length ? ', ' : ''}${tsCols.join(', ')})
+                  VALUES (${placeholders}${tsVals.length ? ', ' : ''}${tsVals.join(', ')})`;
 
       const result = db.run(sql, values);
       if (afterSave) afterSave(req, data, result.lastInsertRowid);
@@ -202,7 +234,7 @@ function createResourceRouter(config) {
         req.flash('error', `${title} not found`);
         return res.redirect(`/${prefix}`);
       }
-      res.render(editView || `${prefix}/edit`, {
+      res.render(editView || `${viewRoot}/edit`, {
         title: `Edit ${title}`,
         pageTitle: `Edit ${title}`,
         module,
@@ -249,14 +281,13 @@ function createResourceRouter(config) {
       }
 
       const keys = Object.keys(data);
-      const hasUpdated = timestamps.includes('updated_at');
-      const assignments = keys.map(k => `${k} = ?`).join(', ');
-      const values = keys.map(k => data[k]);
-      if (hasUpdated) {
-        db.run(`UPDATE ${table} SET ${assignments}, updated_at = datetime('now') WHERE id = ?`, [...values, req.params.id]);
-      } else {
-        db.run(`UPDATE ${table} SET ${assignments} WHERE id = ?`, [...values, req.params.id]);
-      }
+            const assignments = keys.map(k => `${k} = ?`).join(', ');
+            const values = keys.map(k => data[k]);
+            if (hasUpdated) {
+              db.run(`UPDATE ${table} SET ${assignments}, updated_at = datetime('now') WHERE id = ?`, [...values, req.params.id]);
+            } else {
+              db.run(`UPDATE ${table} SET ${assignments} WHERE id = ?`, [...values, req.params.id]);
+            }
 
       if (afterSave) afterSave(req, data, row.id);
 
@@ -293,14 +324,14 @@ function createResourceRouter(config) {
     }
   });
 
-  router.get('/:id', idParam, handleValidationErrors, (req, res) => {
+  router.get('/:id', idValidator, handleValidationErrors, (req, res) => {
     try {
-      const row = db.get(`SELECT * FROM ${table} WHERE id = ?`, [req.params.id]);
+      const row = db.get(`SELECT * FROM ${table} WHERE ${primaryKey} = ?`, [req.params.id]);
       if (!row) {
         req.flash('error', `${title} not found`);
         return res.redirect(`/${prefix}`);
       }
-      res.render(`${prefix}/show`, {
+      res.render(showView || `${viewRoot}/show`, {
         title: row.name || row.subject || row.title || title,
         pageTitle: row.name || row.subject || row.title || title,
         module,

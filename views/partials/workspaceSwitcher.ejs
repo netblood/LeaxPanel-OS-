@@ -38,7 +38,6 @@
         class="workspace-item <%= isActive ? 'active' : '' %>"
         data-workspace-id="<%= ws.id %>"
         data-workspace-type="<%= ws.type %>"
-        onclick="switchWorkspace('<%= ws.id %>')"
         title="<%= ws.name %> (<%= roleLabels[role] || role %> - <%= type.label %>)"
       >
         <span class="workspace-icon" style="background: <%= type.color %>"><%= type.icon %></span>
@@ -87,6 +86,8 @@
 
 <script>
 function switchWorkspace(workspaceId) {
+  if (!workspaceId) return;
+
   // Show loading state
   const btn = document.querySelector(`[data-workspace-id="${workspaceId}"]`);
   if (btn) {
@@ -94,36 +95,62 @@ function switchWorkspace(workspaceId) {
     btn.disabled = true;
   }
 
+  const showError = function(message) {
+    if (typeof window.leaxToast === 'function') {
+      window.leaxToast(message, 'error');
+    } else {
+      console.error(message);
+    }
+    if (btn) {
+      btn.classList.remove('switching');
+      btn.disabled = false;
+    }
+  };
+
   // Call API to switch workspace
-  fetch('/workspaces/' + workspaceId + '/switch', {
+  fetch('/workspaces/' + encodeURIComponent(workspaceId) + '/switch', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
     }
   })
-  .then(response => response.json())
+  .then(response => {
+    if (response.redirected) {
+      window.location.reload();
+      return null;
+    }
+    return response.json();
+  })
   .then(data => {
+    if (!data) return;
     if (data.success) {
       // Reload page to reflect new workspace context
       window.location.reload();
     } else {
-  window.leaxToast(data.error || 'Failed to switch workspace', 'error');
-      if (btn) {
-        btn.classList.remove('switching');
-        btn.disabled = false;
-      }
+      showError(data.error || 'Failed to switch workspace');
     }
   })
   .catch(err => {
     console.error('Workspace switch error:', err);
-    window.leaxToast('Failed to switch workspace', 'error');
-    if (btn) {
-      btn.classList.remove('switching');
-      btn.disabled = false;
-    }
+    showError('Failed to switch workspace');
   });
 }
+
+window.switchWorkspace = switchWorkspace;
+
+// Bind workspace buttons without inline handlers (CSP: script-src-attr 'none')
+document.addEventListener('DOMContentLoaded', function() {
+  const workspaceList = document.getElementById('workspaceList');
+  if (!workspaceList) return;
+
+  workspaceList.addEventListener('click', function(e) {
+    const button = e.target.closest('[data-workspace-id]');
+    if (!button || !workspaceList.contains(button)) return;
+    if (button.disabled) return;
+    switchWorkspace(button.getAttribute('data-workspace-id'));
+  });
+});
 
 // Auto-hide workspace switcher on mobile when clicking outside
 document.addEventListener('click', function(e) {

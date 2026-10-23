@@ -33,7 +33,7 @@ const ROUTES = [
   '/billing', '/billing/create',
   '/marketplace', '/marketplace/create',
   '/users', '/users/create', '/users/roles',
-  '/security', '/security/audit',
+  '/security', '/security/audit', '/security-alerts',
   '/white-label', '/white-label/create',
   '/platform', '/platform/create',
   '/settings',
@@ -41,10 +41,16 @@ const ROUTES = [
   '/notifications',
   '/apikeys', '/apikeys/usage',
   '/doctor',
+  '/templates', '/templates/blueprints',
+  '/terminal', '/terminal/history',
+  '/webview',
+  '/workspaces', '/workspaces/owned', '/workspaces/dashboard',
   '/api/health', '/api/stats', '/api/resources'
 ];
 
-function request(method, path, { headers = {}, body = null, cookies = '' } = {}) {
+const PUBLIC_ROUTES = new Set(['/', '/login', '/register', '/setup', '/health']);
+
+function request(method, path, { headers = {}, body = null, cookies = '', timeout = 20000 } = {}) {
   return new Promise((resolve, reject) => {
     const url = new URL(path, BASE);
     const payload = body ? JSON.stringify(body) : null;
@@ -63,6 +69,9 @@ function request(method, path, { headers = {}, body = null, cookies = '' } = {})
       let data = '';
       res.on('data', chunk => { data += chunk; });
       res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, body: data }));
+    });
+    req.setTimeout(timeout, () => {
+      req.destroy(new Error(`timeout after ${timeout}ms`));
     });
     req.on('error', reject);
     if (payload) req.write(payload);
@@ -117,6 +126,12 @@ function cookieHeader(setCookie, existing = '') {
   cookies = cookieHeader(formLogin.headers['set-cookie'], cookies);
   console.log(`[crawl] Login: ${formLogin.status} -> ${formLogin.headers.location || 'no redirect'}`);
 
+  if (formLogin.status !== 302 || formLogin.headers.location !== '/dashboard') {
+    console.error('[crawl] Login failed; authenticated routes were not crawled.');
+    process.exitCode = 1;
+    return;
+  }
+
   // 3. Crawl.
   const failures = [];
   let ok = 0;
@@ -127,10 +142,15 @@ function cookieHeader(setCookie, existing = '') {
       const res = await request('GET', route, { cookies });
       const isRedirect = res.status >= 300 && res.status < 400;
       const isApi = route.startsWith('/api/');
+      const requiresAuth = !PUBLIC_ROUTES.has(route);
+      const redirectedToLogin = isRedirect && res.headers.location === '/login';
 
       if (res.status === 500 || (isApi && res.status >= 400 && route !== '/api/health')) {
         failures.push({ route, status: res.status, snippet: res.body.slice(0, 400).replace(/\s+/g, ' ') });
         console.log(`  FAIL ${route} -> ${res.status}`);
+      } else if (redirectedToLogin && requiresAuth) {
+        failures.push({ route, status: res.status, snippet: `Unexpected redirect to ${res.headers.location}` });
+        console.log(`  FAIL ${route} -> ${res.status} ${res.headers.location}`);
       } else if (isRedirect) {
         redirected++;
         console.log(`  REDIR ${route} -> ${res.status} ${res.headers.location}`);

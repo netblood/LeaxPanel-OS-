@@ -29,6 +29,9 @@ const DEFAULTS = {
   cloudflare_zone_id: '',
   cloudflare_zone_name: '',
   cloudflare_configured: 'false',
+  cloudflare_always_https: 'false',
+  cloudflare_auto_https_rewrites: 'false',
+  cloudflare_min_tls_version: '1.2',
   
   // Platform domain settings
   platform_domain: '',

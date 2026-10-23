@@ -57,14 +57,11 @@ async function createAlert(alertType, userId, details = {}, options = {}) {
 
   try {
     // Save to database
-    await new Promise((resolve, reject) => {
-      db.run(
-        `INSERT INTO security_alerts (id, type, severity, title, user_id, details, source, metadata, acknowledged, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [alert.id, alert.type, alert.severity, alert.title, alert.user_id, alert.details, alert.source, alert.metadata, alert.acknowledged, alert.created_at],
-        (err) => err ? reject(err) : resolve()
-      );
-    });
+    db.run(
+      `INSERT INTO security_alerts (id, type, severity, title, user_id, details, source, metadata, acknowledged, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [alert.id, alert.type, alert.severity, alert.title, alert.user_id, alert.details, alert.source, alert.metadata, alert.acknowledged, alert.created_at]
+    );
 
     // Cache recent alerts
     if (!alertCache.has(userId)) {
@@ -114,16 +111,12 @@ async function getAlerts(userId, options = {}) {
   params.push(limit, offset);
 
   try {
-    return await new Promise((resolve, reject) => {
-      db.all(query, params, (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows.map(r => ({
-          ...r,
-          details: r.details ? JSON.parse(r.details) : {},
-          metadata: r.metadata ? JSON.parse(r.metadata) : {}
-        })));
-      });
-    });
+    const rows = db.all(query, params);
+    return rows.map(r => ({
+      ...r,
+      details: r.details ? JSON.parse(r.details) : {},
+      metadata: r.metadata ? JSON.parse(r.metadata) : {}
+    }));
   } catch (err) {
     logger.error('Failed to get alerts:', err);
     return [];
@@ -132,13 +125,10 @@ async function getAlerts(userId, options = {}) {
 
 async function acknowledgeAlert(alertId, userId) {
   try {
-    await new Promise((resolve, reject) => {
-      db.run(
-        `UPDATE security_alerts SET acknowledged = 1, acknowledged_by = ?, acknowledged_at = datetime('now') WHERE id = ? AND user_id = ?`,
-        [userId, alertId, userId],
-        (err) => err ? reject(err) : resolve()
-      );
-    });
+    db.run(
+      `UPDATE security_alerts SET acknowledged = 1, acknowledged_by = ?, acknowledged_at = datetime('now') WHERE id = ? AND user_id = ?`,
+      [userId, alertId, userId]
+    );
     
     // Update cache
     const userAlerts = alertCache.get(userId);
@@ -160,12 +150,7 @@ async function acknowledgeAlert(alertId, userId) {
 
 async function getUnacknowledgedCount(userId) {
   try {
-    const row = await new Promise((resolve, reject) => {
-      db.get('SELECT COUNT(*) as count FROM security_alerts WHERE user_id = ? AND acknowledged = 0', [userId], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
+    const row = db.get('SELECT COUNT(*) as count FROM security_alerts WHERE user_id = ? AND acknowledged = 0', [userId]);
     return row ? row.count : 0;
   } catch (err) {
     return 0;
@@ -174,12 +159,7 @@ async function getUnacknowledgedCount(userId) {
 
 // Specific alert check functions
 async function checkNewDeviceLogin(userId, deviceInfo, ipAddress) {
-  const knownDevices = await new Promise((resolve, reject) => {
-    db.all('SELECT DISTINCT user_agent FROM audit_logs WHERE user_id = ? AND created_at > datetime("now", "-30 days")', [userId], (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows.map(r => r.user_agent));
-    });
-  });
+  const knownDevices = db.all('SELECT DISTINCT user_agent FROM audit_logs WHERE user_id = ? AND created_at > datetime("now", "-30 days")', [userId]).map(r => r.user_agent);
   
   const isNewDevice = !knownDevices.some(ua => ua && ua.includes(deviceInfo.browser) && ua.includes(deviceInfo.os));
   
@@ -195,12 +175,7 @@ async function checkNewDeviceLogin(userId, deviceInfo, ipAddress) {
 }
 
 async function checkNewCountryLogin(userId, country, ipAddress) {
-  const knownCountries = await new Promise((resolve, reject) => {
-    db.all('SELECT DISTINCT country FROM audit_logs WHERE user_id = ? AND created_at > datetime("now", "-90 days")', [userId], (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows.map(r => r.country).filter(Boolean));
-    });
-  });
+  const knownCountries = db.all('SELECT DISTINCT country FROM audit_logs WHERE user_id = ? AND created_at > datetime("now", "-90 days")', [userId]).map(r => r.country).filter(Boolean);
   
   const isNewCountry = !knownCountries.includes(country);
   
@@ -215,27 +190,17 @@ async function checkNewCountryLogin(userId, country, ipAddress) {
 }
 
 async function checkBruteforceAttempts(ipAddress, threshold = 5, windowMinutes = 15) {
-  const attempts = await new Promise((resolve, reject) => {
-    db.get(
-      `SELECT COUNT(*) as count FROM audit_logs 
-       WHERE ip_address = ? AND action LIKE '%login%' AND status_code IN (401, 403)
-       AND created_at > datetime('now', '-${windowMinutes} minutes')`,
-      [ipAddress],
-      (err, row) => {
-        if (err) reject(err);
-        else resolve(row ? row.count : 0);
-      }
-    );
-  });
+  const attemptsRow = db.get(
+    `SELECT COUNT(*) as count FROM audit_logs
+     WHERE ip_address = ? AND action LIKE '%login%' AND status_code IN (401, 403)
+     AND created_at > datetime('now', '-${windowMinutes} minutes')`,
+    [ipAddress]
+  );
+  const attempts = attemptsRow ? attemptsRow.count : 0;
   
   if (attempts >= threshold) {
     // Get a user associated with this IP
-    const userRow = await new Promise((resolve, reject) => {
-      db.get('SELECT user_id FROM audit_logs WHERE ip_address = ? AND user_id IS NOT NULL ORDER BY created_at DESC LIMIT 1', [ipAddress], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
+    const userRow = db.get('SELECT user_id FROM audit_logs WHERE ip_address = ? AND user_id IS NOT NULL ORDER BY created_at DESC LIMIT 1', [ipAddress]);
     
     if (userRow) {
       await createAlert('BRUTEFORCE_ATTEMPTS', userRow.user_id, {
@@ -327,19 +292,13 @@ async function checkFirewallChanges(userId, changes) {
 
 async function checkSSLEpiry(daysUntilExpiry = 30) {
   // This would be run periodically by a cron job
-  const expiringCerts = await new Promise((resolve, reject) => {
-    db.all(
-      `SELECT d.name, d.user_id, ssl_expires 
-       FROM domains d 
-       WHERE ssl_expires IS NOT NULL 
-       AND date(ssl_expires) <= date('now', '+${daysUntilExpiry} days')
-       AND date(ssl_expires) >= date('now')`,
-      (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      }
-    );
-  });
+  const expiringCerts = db.all(
+    `SELECT d.name, d.user_id, ssl_expires
+     FROM domains d
+     WHERE ssl_expires IS NOT NULL
+     AND date(ssl_expires) <= date('now', '+${daysUntilExpiry} days')
+     AND date(ssl_expires) >= date('now')`
+  );
   
   for (const cert of expiringCerts) {
     await createAlert('SSL_EXPIRY', cert.user_id, {

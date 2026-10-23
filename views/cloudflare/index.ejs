@@ -131,10 +131,20 @@
                   <td><%= record.status || 'active' %></td>
                   <td class="col-actions">
                     <div class="btn-group">
-                      <button class="btn btn-secondary btn-sm" onclick="editDnsRecord('<%= record.id %>', '<%= record.type %>', '<%= record.name %>', '<%= record.content %>', '<%= record.ttl %>', '<%= record.proxied %>', '<%= record.comment || '' %>')">
+                      <button
+                        type="button"
+                        class="btn btn-secondary btn-sm js-edit-dns-record"
+                        data-record-id="<%= record.id %>"
+                        data-record-type="<%= record.type %>"
+                        data-record-name="<%= record.name %>"
+                        data-record-content="<%= record.content %>"
+                        data-record-ttl="<%= record.ttl %>"
+                        data-record-proxied="<%= record.proxied %>"
+                        data-record-comment="<%= record.comment || '' %>"
+                      >
                         Edit
                       </button>
-                      <form action="/cloudflare/dns/delete" method="POST" style="display:inline;" onsubmit="return confirm('Delete this DNS record? This cannot be undone.')">
+                      <form action="/cloudflare/dns/delete" method="POST" style="display:inline;" class="js-delete-dns-form" data-confirm="Delete this DNS record? This cannot be undone.">
                         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <input type="hidden" name="recordId" value="<%= record.id %>">
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -179,20 +189,20 @@
         <div class="form-group span-2">
           <label class="form-label">Always Use HTTPS</label>
           <div class="form-check">
-            <input type="checkbox" class="form-check-input" id="always_https" <%= panelSettings.cloudflare_always_https === 'true' ? 'checked' : '' %> onchange="toggleSslSetting('always_https', this.checked)">
+            <input type="checkbox" class="form-check-input js-ssl-setting" id="always_https" data-setting-key="cloudflare_always_https" data-setting-value-type="boolean" <%= panelSettings.cloudflare_always_https === 'true' ? 'checked' : '' %>>
             <label class="form-check-label" for="always_https">Force HTTPS for all visitors</label>
           </div>
         </div>
         <div class="form-group span-2">
           <label class="form-label">Automatic HTTPS Rewrites</label>
           <div class="form-check">
-            <input type="checkbox" class="form-check-input" id="auto_https_rewrites" <%= panelSettings.cloudflare_auto_https_rewrites === 'true' ? 'checked' : '' %> onchange="toggleSslSetting('auto_https_rewrites', this.checked)">
+            <input type="checkbox" class="form-check-input js-ssl-setting" id="auto_https_rewrites" data-setting-key="cloudflare_auto_https_rewrites" data-setting-value-type="boolean" <%= panelSettings.cloudflare_auto_https_rewrites === 'true' ? 'checked' : '' %>>
             <label class="form-check-label" for="auto_https_rewrites">Rewrite HTTP to HTTPS for resources</label>
           </div>
         </div>
         <div class="form-group span-2">
           <label class="form-label">Minimum TLS Version</label>
-          <select class="form-select" id="min_tls_version" onchange="toggleSslSetting('min_tls_version', this.value)">
+          <select class="form-select js-ssl-setting" id="min_tls_version" data-setting-key="cloudflare_min_tls_version" data-setting-value-type="string">
             <option value="1.2" <%= panelSettings.cloudflare_min_tls_version === '1.2' ? 'selected' : '' %>>TLS 1.2</option>
             <option value="1.3" <%= panelSettings.cloudflare_min_tls_version === '1.3' ? 'selected' : '' %>>TLS 1.3</option>
           </select>
@@ -264,28 +274,107 @@
 </div>
 
 <script>
-function editDnsRecord(id, type, name, content, ttl, proxied, comment) {
-  const form = document.getElementById('dnsForm');
-  form.action = '/cloudflare/dns/update';
-  form.innerHTML += '<input type="hidden" name="recordId" value="' + id + '">';
-  document.getElementById('dns_type').value = type;
-  document.getElementById('dns_name').value = name;
-  document.getElementById('dns_content').value = content;
-  document.getElementById('dns_ttl').value = ttl;
-  document.getElementById('dns_proxied').checked = proxied;
-  document.getElementById('dns_comment').value = comment;
-  document.getElementById('createDnsModalLabel').textContent = 'Edit DNS Record';
-  new bootstrap.Modal(document.getElementById('createDnsModal')).show();
-}
+(function() {
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '<%= csrfToken %>';
 
-function toggleSslSetting(key, value) {
-  fetch('/api/cloudflare/ssl/' + key, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-Token': '<%= csrfToken %>'
-    },
-    body: JSON.stringify({ value: value })
-  }).catch(console.error);
-}
+  function showToast(message, type) {
+    if (typeof window.leaxToast === 'function') {
+      window.leaxToast(message, type);
+    } else if (type === 'error') {
+      console.error(message);
+    }
+  }
+
+  function editDnsRecord(button) {
+    const form = document.getElementById('dnsForm');
+    if (!form) return;
+
+    form.action = '/cloudflare/dns/update';
+
+    let recordIdInput = form.querySelector('input[name="recordId"]');
+    if (!recordIdInput) {
+      recordIdInput = document.createElement('input');
+      recordIdInput.type = 'hidden';
+      recordIdInput.name = 'recordId';
+      form.appendChild(recordIdInput);
+    }
+    recordIdInput.value = button.getAttribute('data-record-id') || '';
+
+    document.getElementById('dns_type').value = button.getAttribute('data-record-type') || 'A';
+    document.getElementById('dns_name').value = button.getAttribute('data-record-name') || '';
+    document.getElementById('dns_content').value = button.getAttribute('data-record-content') || '';
+    document.getElementById('dns_ttl').value = button.getAttribute('data-record-ttl') || '1';
+    document.getElementById('dns_proxied').checked = button.getAttribute('data-record-proxied') === 'true';
+    document.getElementById('dns_comment').value = button.getAttribute('data-record-comment') || '';
+    document.getElementById('createDnsModalLabel').textContent = 'Edit DNS Record';
+
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('createDnsModal'));
+    modal.show();
+  }
+
+  function resetDnsForm() {
+    const form = document.getElementById('dnsForm');
+    if (!form) return;
+    form.action = '/cloudflare/dns/create';
+    const recordIdInput = form.querySelector('input[name="recordId"]');
+    if (recordIdInput) recordIdInput.remove();
+    form.reset();
+    document.getElementById('createDnsModalLabel').textContent = 'Add DNS Record';
+  }
+
+  function toggleSslSetting(key, value) {
+    return fetch('/cloudflare/ssl/toggle/' + encodeURIComponent(key), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken
+      },
+      body: JSON.stringify({ value: value })
+    })
+    .then(response => response.json().catch(() => ({ success: false })))
+    .then(data => {
+      if (!data || data.success !== true) {
+        showToast((data && data.error) || 'Failed to update SSL setting', 'error');
+      }
+      return data;
+    })
+    .catch(error => {
+      console.error('SSL setting update failed:', error);
+      showToast('Failed to update SSL setting', 'error');
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.js-edit-dns-record').forEach(function(button) {
+      button.addEventListener('click', function() {
+        editDnsRecord(button);
+      });
+    });
+
+    document.querySelectorAll('.js-delete-dns-form').forEach(function(form) {
+      form.addEventListener('submit', function(e) {
+        const message = form.getAttribute('data-confirm') || 'Are you sure?';
+        if (!window.confirm(message)) {
+          e.preventDefault();
+        }
+      });
+    });
+
+    document.querySelectorAll('.js-ssl-setting').forEach(function(control) {
+      const eventName = control.tagName === 'SELECT' ? 'change' : 'change';
+      control.addEventListener(eventName, function() {
+        const key = control.getAttribute('data-setting-key');
+        if (!key) return;
+        const valueType = control.getAttribute('data-setting-value-type');
+        const value = valueType === 'boolean' ? control.checked : control.value;
+        toggleSslSetting(key, value);
+      });
+    });
+
+    const addRecordButton = document.querySelector('[data-bs-target="#createDnsModal"]');
+    if (addRecordButton) {
+      addRecordButton.addEventListener('click', resetDnsForm);
+    }
+  });
+})();
 </script>

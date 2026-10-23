@@ -464,7 +464,7 @@ defineModule({
 defineModule({
   table: 'cloudflare_zones',
   module: 'cloudflare',
-  prefix: 'cloudflare',
+  prefix: 'cloudflare-zones',
   perm: 'cloudflare:view',
   title: 'Cloudflare',
   subtitle: 'Zones, DNS, SSL, cache and firewall rules',
@@ -801,7 +801,7 @@ defineModule({
 defineModule({
   table: 'file_manager_files',
   module: 'file-manager',
-  prefix: 'file-manager',
+  prefix: 'file-manager-files',
   perm: 'filemanager:view',
   title: 'File Manager',
   subtitle: 'Browse, edit and manage project files with Monaco Editor',
@@ -815,7 +815,6 @@ defineModule({
     { name: 'project_type', label: 'Project Type', type: 'select', options: ['app', 'website', 'service', 'workspace', 'custom'], default: 'custom' },
     { name: 'project_id', label: 'Project ID', type: 'number' },
     { name: 'workspace_id', label: 'Workspace', type: 'select', options: [], help: 'Leave empty for global files' },
-    { name: 'content', label: 'Content', type: 'textarea', help: 'File content (for small files)' },
     { name: 'mime_type', label: 'MIME Type', placeholder: 'text/javascript' },
     { name: 'encoding', label: 'Encoding', default: 'utf-8' },
     { name: 'permissions', label: 'Permissions', default: 'rw-r--r--' },
@@ -826,7 +825,7 @@ defineModule({
     { key: 'path', label: 'Path' },
     { key: 'type', label: 'Type', badge: true },
     { key: 'project_type', label: 'Project', badge: true },
-    { key: 'size', label: 'Size', custom: 'size' },
+    { key: 'size_bytes', label: 'Size', custom: 'size_bytes' },
     { key: 'updated_at', label: 'Modified', date: true }
   ],
   defaults: { type: 'file', encoding: 'utf-8', permissions: 'rw-r--r--', is_hidden: 0 }
@@ -836,13 +835,14 @@ defineModule({
 defineModule({
   table: 'terminal_sessions',
   module: 'terminal',
-  prefix: 'terminal',
+  prefix: 'terminal-sessions',
   perm: 'terminal:view',
   title: 'Terminal Center',
   subtitle: 'Browser-based terminal with xterm.js',
   icon: 'terminal',
   orderBy: 'started_at DESC',
   viewPrefix: 'terminal',
+  idType: 'text',
   fields: [
     { name: 'name', label: 'Session Name', required: true, maxLength: 120, placeholder: 'my-terminal' },
     { name: 'project_type', label: 'Project Type', type: 'select', required: true, options: ['app', 'website', 'service', 'workspace', 'custom'], default: 'workspace' },
@@ -852,7 +852,7 @@ defineModule({
     { name: 'cols', label: 'Columns', type: 'number', default: 80 },
     { name: 'rows', label: 'Rows', type: 'number', default: 24 },
     { name: 'env_vars', label: 'Environment Variables', type: 'config', help: 'JSON object' },
-    { name: 'working_directory', label: 'Working Directory', placeholder: '/home/user/project' }
+    { name: 'path', label: 'Working Directory', placeholder: '/home/user/project' }
   ],
   columns: [
     { key: 'name', label: 'Session', primary: true },
@@ -860,7 +860,7 @@ defineModule({
     { key: 'status', label: 'Status', status: true },
     { key: 'shell', label: 'Shell', badge: true },
     { key: 'started_at', label: 'Started', date: true },
-    { key: 'last_activity', label: 'Last Activity', date: true }
+    { key: 'ended_at', label: 'Ended', date: true }
   ],
   defaults: { status: 'active', shell: 'bash', cols: 80, rows: 24, env_vars: '{}' }
 });
@@ -879,22 +879,25 @@ defineModule({
   fields: [
     { name: 'user_id', label: 'User', type: 'select', options: [] },
     { name: 'action', label: 'Action', required: true, placeholder: 'create' },
-    { name: 'resource_type', label: 'Resource Type', required: true, placeholder: 'service' },
+    { name: 'resource', label: 'Resource Type', required: true, placeholder: 'service' },
     { name: 'resource_id', label: 'Resource ID', placeholder: '123' },
     { name: 'resource_name', label: 'Resource Name' },
     { name: 'result', label: 'Result', type: 'select', options: ['success', 'failure', 'error', 'denied'], default: 'success' },
     { name: 'severity', label: 'Severity', type: 'select', options: ['info', 'warning', 'critical'], default: 'info' },
     { name: 'ip_address', label: 'IP Address' },
     { name: 'country', label: 'Country' },
-    { name: 'device_type', label: 'Device Type', type: 'select', options: ['desktop', 'mobile', 'tablet', 'bot'] },
-    { name: 'browser', label: 'Browser' },
-    { name: 'os', label: 'Operating System' }
+    { name: 'city', label: 'City' },
+    { name: 'user_agent', label: 'User Agent' },
+    { name: 'method', label: 'Method' },
+    { name: 'path', label: 'Path' },
+    { name: 'status_code', label: 'Status Code', type: 'number' },
+    { name: 'duration_ms', label: 'Duration (ms)', type: 'number' }
   ],
   columns: [
     { key: 'created_at', label: 'Time', date: true, primary: true },
     { key: 'user_id', label: 'User', custom: 'user' },
     { key: 'action', label: 'Action', badge: true },
-    { key: 'resource_type', label: 'Resource', badge: true },
+    { key: 'resource', label: 'Resource', badge: true },
     { key: 'resource_name', label: 'Name' },
     { key: 'result', label: 'Result', status: true },
     { key: 'severity', label: 'Severity', badge: true },
@@ -907,18 +910,19 @@ defineModule({
 defineModule({
   table: 'security_alerts',
   module: 'security-alerts',
-  prefix: 'security-alerts',
+  prefix: 'security-alert-rules',
   perm: 'securityalerts:view',
   title: 'Security Alerts',
   subtitle: 'Real-time security monitoring and alerting',
   icon: 'alert-triangle',
   orderBy: 'created_at DESC',
   viewPrefix: 'security-alerts',
+  idType: 'text',
   fields: [
     { name: 'type', label: 'Alert Type', type: 'select', required: true, options: ['database_deletion', 'permission_change', 'admin_creation', 'dangerous_command', 'firewall_change', 'mass_delete', 'new_device_login', 'new_country_login', 'bruteforce_attempt', 'ssl_expiry', 'backup_failure', 'service_failure', 'unauthorized_access', 'suspicious_activity'] },
     { name: 'severity', label: 'Severity', type: 'select', options: ['info', 'warning', 'critical'], default: 'warning' },
     { name: 'title', label: 'Title', required: true, maxLength: 200 },
-    { name: 'message', label: 'Message', type: 'textarea', required: true },
+    { name: 'details', label: 'Message', type: 'textarea', required: true },
     { name: 'user_id', label: 'User', type: 'select', options: [] },
     { name: 'source_ip', label: 'Source IP' },
     { name: 'source_country', label: 'Source Country' },
@@ -926,7 +930,7 @@ defineModule({
     { name: 'resource_type', label: 'Resource Type' },
     { name: 'resource_id', label: 'Resource ID' },
     { name: 'resource_name', label: 'Resource Name' },
-    { name: 'is_acknowledged', label: 'Acknowledged', type: 'checkbox', default: false },
+    { name: 'acknowledged', label: 'Acknowledged', type: 'checkbox', default: false },
     { name: 'acknowledged_by', label: 'Acknowledged By', type: 'select', options: [] }
   ],
   columns: [
@@ -936,9 +940,9 @@ defineModule({
     { key: 'title', label: 'Title' },
     { key: 'user_id', label: 'User', custom: 'user' },
     { key: 'source_ip', label: 'Source IP' },
-    { key: 'is_acknowledged', label: 'Acknowledged', status: true }
+    { key: 'acknowledged', label: 'Acknowledged', status: true }
   ],
-  defaults: { severity: 'warning', is_acknowledged: 0 }
+  defaults: { severity: 'warning', acknowledged: 0 }
 });
 
 /* ------------------------------------------------------- Security Alert Rules */
@@ -976,7 +980,7 @@ defineModule({
 defineModule({
   table: 'doctor_checks',
   module: 'doctor',
-  prefix: 'doctor',
+  prefix: 'doctor-checks',
   perm: 'doctor:view',
   title: 'LeaxPanel Doctor',
   subtitle: 'System health scans and automated repairs',
@@ -985,25 +989,26 @@ defineModule({
   viewPrefix: 'doctor',
   fields: [
     { name: 'name', label: 'Check Name', required: true, maxLength: 120 },
+    { name: 'label', label: 'Label', required: true, maxLength: 120 },
     { name: 'category', label: 'Category', type: 'select', required: true, options: ['routes', 'permissions', 'ssl', 'firewall', 'ports', 'storage', 'database', 'backups', 'services', 'logs'] },
     { name: 'description', label: 'Description', type: 'textarea' },
     { name: 'check_function', label: 'Check Function', required: true, maxLength: 100, help: 'Function name in doctor service' },
     { name: 'fix_function', label: 'Fix Function', maxLength: 100, help: 'Function name for auto-fix (optional)' },
     { name: 'is_enabled', label: 'Enabled', type: 'checkbox', default: true },
     { name: 'is_critical', label: 'Critical', type: 'checkbox', default: false },
-    { name: 'run_on_startup', label: 'Run on Startup', type: 'checkbox', default: false },
-    { name: 'interval_minutes', label: 'Interval (minutes)', type: 'number', default: 60, help: '0 = manual only' }
+    { name: 'run_interval_minutes', label: 'Interval (minutes)', type: 'number', default: 60, help: '0 = manual only' }
   ],
   columns: [
     { key: 'name', label: 'Check', primary: true },
     { key: 'category', label: 'Category', badge: true },
     { key: 'is_enabled', label: 'Enabled', status: true },
     { key: 'is_critical', label: 'Critical', badge: true },
-    { key: 'interval_minutes', label: 'Interval' }
+    { key: 'run_interval_minutes', label: 'Interval' }
   ],
-  defaults: { is_enabled: 1, is_critical: 0, run_on_startup: 0, interval_minutes: 60 }
+  defaults: { is_enabled: 1, is_critical: 0, run_interval_minutes: 60 }
 });
 
+/* ------------------------------------------------------- Doctor Scans */
 /* ------------------------------------------------------- Doctor Scans */
 defineModule({
   table: 'doctor_scans',
@@ -1016,20 +1021,27 @@ defineModule({
   orderBy: 'created_at DESC',
   viewPrefix: 'doctor-scans',
   fields: [
-    { name: 'check_id', label: 'Check', type: 'select', required: true, options: [] },
-    { name: 'status', label: 'Status', type: 'select', options: ['passed', 'warning', 'failed', 'error'], default: 'passed' },
-    { name: 'details', label: 'Details', type: 'textarea' },
+    { name: 'triggered_by', label: 'Triggered By', type: 'select', options: [] },
+    { name: 'trigger_type', label: 'Trigger Type', type: 'select', options: ['manual', 'scheduled', 'startup'], default: 'manual' },
+    { name: 'total_checks', label: 'Total Checks', type: 'number' },
+    { name: 'passed_checks', label: 'Passed', type: 'number' },
+    { name: 'failed_checks', label: 'Failed', type: 'number' },
+    { name: 'warning_checks', label: 'Warnings', type: 'number' },
+    { name: 'error_checks', label: 'Errors', type: 'number' },
+    { name: 'score', label: 'Score', type: 'number' },
     { name: 'duration_ms', label: 'Duration (ms)', type: 'number' },
-    { name: 'fixed', label: 'Auto-fixed', type: 'checkbox', default: false }
+    { name: 'results', label: 'Results', type: 'config', help: 'JSON scan results' }
   ],
   columns: [
     { key: 'created_at', label: 'Time', date: true, primary: true },
-    { key: 'check_id', label: 'Check', custom: 'check' },
-    { key: 'status', label: 'Status', status: true },
-    { key: 'duration_ms', label: 'Duration' },
-    { key: 'fixed', label: 'Fixed', status: true }
+    { key: 'trigger_type', label: 'Trigger', badge: true },
+    { key: 'total_checks', label: 'Total' },
+    { key: 'passed_checks', label: 'Passed' },
+    { key: 'failed_checks', label: 'Failed', status: true },
+    { key: 'score', label: 'Score' },
+    { key: 'duration_ms', label: 'Duration' }
   ],
-  defaults: { status: 'passed', fixed: 0 }
+  defaults: { trigger_type: 'manual', total_checks: 0, passed_checks: 0, failed_checks: 0, warning_checks: 0, error_checks: 0, score: 100, duration_ms: null, results: '[]' }
 });
 
 /* ------------------------------------------------------- Login Page Settings */
@@ -1041,22 +1053,25 @@ defineModule({
   title: 'Login Page',
   subtitle: 'Customize the premium login page appearance',
   icon: 'unlock',
-  orderBy: 'key ASC',
+  orderBy: 'setting_key ASC',
   viewPrefix: 'login-page',
   fields: [
-    { name: 'key', label: 'Setting Key', required: true, maxLength: 100 },
-    { name: 'value', label: 'Value', type: 'textarea' },
-    { name: 'type', label: 'Type', type: 'select', options: ['string', 'color', 'image', 'url', 'number', 'boolean', 'json'], default: 'string' },
+    { name: 'setting_key', label: 'Setting Key', required: true, maxLength: 100 },
+    { name: 'setting_value', label: 'Value', type: 'textarea' },
+    { name: 'setting_type', label: 'Type', type: 'select', options: ['string', 'color', 'image', 'url', 'number', 'boolean', 'json'], default: 'string' },
+    { name: 'label', label: 'Label' },
     { name: 'description', label: 'Description' },
-    { name: 'category', label: 'Category', type: 'select', options: ['branding', 'background', 'layout', 'colors', 'footer', 'animation'], default: 'branding' }
+    { name: 'category', label: 'Category', type: 'select', options: ['branding', 'background', 'layout', 'colors', 'footer', 'animation'], default: 'appearance' },
+    { name: 'sort_order', label: 'Sort Order', type: 'number', default: 0 },
+    { name: 'is_public', label: 'Public', type: 'checkbox', default: true }
   ],
   columns: [
-    { key: 'key', label: 'Key', primary: true },
+    { key: 'setting_key', label: 'Key', primary: true },
     { key: 'category', label: 'Category', badge: true },
-    { key: 'type', label: 'Type', badge: true },
-    { key: 'value', label: 'Value', custom: 'preview' }
+    { key: 'setting_type', label: 'Type', badge: true },
+    { key: 'setting_value', label: 'Value', custom: 'preview' }
   ],
-  defaults: { type: 'string', category: 'branding' }
+  defaults: { setting_type: 'string', category: 'appearance', sort_order: 0, is_public: 1 }
 });
 
 /* ------------------------------------------------------- Workspace Login Overrides */
@@ -1072,13 +1087,15 @@ defineModule({
   viewPrefix: 'login-overrides',
   fields: [
     { name: 'workspace_id', label: 'Workspace', type: 'select', required: true, options: [] },
-    { name: 'settings', label: 'Overrides', type: 'config', help: 'JSON object with login_page_settings keys to override' }
+    { name: 'setting_key', label: 'Setting Key', required: true, maxLength: 100 },
+    { name: 'setting_value', label: 'Setting Value', type: 'textarea' }
   ],
   columns: [
     { key: 'workspace_id', label: 'Workspace', primary: true, custom: 'workspace' },
-    { key: 'settings', label: 'Overrides', custom: 'json' }
+    { key: 'setting_key', label: 'Key' },
+    { key: 'setting_value', label: 'Value' }
   ],
-  defaults: { settings: '{}' }
+  defaults: {}
 });
 
 /* ------------------------------------------------------- API Endpoints */
@@ -1094,6 +1111,7 @@ defineModule({
   viewPrefix: 'api-endpoints',
   fields: [
     { name: 'name', label: 'Endpoint Name', required: true, maxLength: 120 },
+    { name: 'user_id', label: 'User', type: 'select', required: true, options: [] },
     { name: 'path', label: 'Path', required: true, placeholder: '/api/v1/users' },
     { name: 'method', label: 'HTTP Method', type: 'select', required: true, options: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] },
     { name: 'handler_type', label: 'Handler Type', type: 'select', required: true, options: ['static', 'proxy', 'function', 'template'], default: 'static' },
@@ -1101,18 +1119,18 @@ defineModule({
     { name: 'response_schema', label: 'Response Schema', type: 'config', help: 'JSON Schema for response validation' },
     { name: 'auth_required', label: 'Auth Required', type: 'checkbox', default: true },
     { name: 'rate_limit', label: 'Rate Limit (req/hr)', type: 'number' },
-    { name: 'rate_limit_window', label: 'Rate Limit Window (sec)', type: 'number', default: 3600 },
+    { name: 'rate_limit_window', label: 'Rate Limit Window (sec)', type: 'number', default: 60 },
     { name: 'is_active', label: 'Active', type: 'checkbox', default: true }
   ],
   columns: [
     { key: 'name', label: 'Endpoint', primary: true },
     { key: 'path', label: 'Path' },
-    { name: 'method', label: 'Method', badge: true },
+    { key: 'method', label: 'Method', badge: true },
     { key: 'handler_type', label: 'Handler', badge: true },
     { key: 'auth_required', label: 'Auth', status: true },
     { key: 'is_active', label: 'Active', status: true }
   ],
-  defaults: { handler_type: 'static', auth_required: 1, is_active: 1, rate_limit_window: 3600, handler_config: '{}' }
+  defaults: { handler_type: 'static', auth_required: 1, is_active: 1, rate_limit_window: 60, handler_config: '{}' }
 });
 
 /* ------------------------------------------------------- Webhooks */
@@ -1128,23 +1146,20 @@ defineModule({
   viewPrefix: 'webhooks',
   fields: [
     { name: 'name', label: 'Webhook Name', required: true, maxLength: 120 },
-    { name: 'url', label: 'Target URL', type: 'url', required: true },
+    { name: 'user_id', label: 'User', type: 'select', options: [] },
+    { name: 'target_url', label: 'Target URL', type: 'url', required: true },
     { name: 'method', label: 'HTTP Method', type: 'select', options: ['POST', 'PUT', 'PATCH'], default: 'POST' },
     { name: 'events', label: 'Events', type: 'config', help: 'JSON array of event names', default: '[]' },
     { name: 'secret', label: 'Secret', type: 'password', help: 'Used for signature verification' },
-    { name: 'headers', label: 'Custom Headers', type: 'config', help: 'JSON object', default: '{}' },
-    { name: 'is_active', label: 'Active', type: 'checkbox', default: true },
-    { name: 'retry_count', label: 'Retry Count', type: 'number', default: 3 },
-    { name: 'timeout', label: 'Timeout (sec)', type: 'number', default: 30 }
+    { name: 'status', label: 'Active', type: 'select', options: ['active', 'inactive', 'paused'], default: 'active' }
   ],
   columns: [
     { key: 'name', label: 'Webhook', primary: true },
-    { key: 'url', label: 'URL' },
+    { key: 'target_url', label: 'URL' },
     { key: 'method', label: 'Method', badge: true },
-    { key: 'is_active', label: 'Active', status: true },
-    { key: 'retry_count', label: 'Retries' }
+    { key: 'status', label: 'Status', status: true }
   ],
-  defaults: { method: 'POST', is_active: 1, retry_count: 3, timeout: 30, events: '[]', headers: '{}' }
+  defaults: { method: 'POST', status: 'active', events: '[]' }
 });
 
 /* ------------------------------------------------------- Webhook Deliveries */
@@ -1197,7 +1212,7 @@ defineModule({
     { name: 'exit_code', label: 'Exit Code', type: 'number' },
     { name: 'output', label: 'Output', type: 'textarea' },
     { name: 'duration_ms', label: 'Duration (ms)', type: 'number' },
-    { name: 'working_directory', label: 'Working Directory' }
+    { name: 'working_dir', label: 'Working Directory' }
   ],
   columns: [
     { key: 'created_at', label: 'Time', date: true, primary: true },
@@ -1269,9 +1284,9 @@ defineModule({
   defaults: { messages: '[]' }
 });
 
-/* ------------------------------------------------------- API Usage Logs */
+/* ------------------------------------------------------- API Usage */
 defineModule({
-  table: 'api_usage_logs',
+  table: 'api_usage_log',
   module: 'api-usage',
   prefix: 'api-usage',
   perm: 'api:view',
@@ -1282,23 +1297,19 @@ defineModule({
   viewPrefix: 'api-usage',
   fields: [
     { name: 'api_key_id', label: 'API Key', type: 'select', options: [] },
-    { name: 'endpoint_id', label: 'Endpoint', type: 'select', options: [] },
     { name: 'user_id', label: 'User', type: 'select', options: [] },
     { name: 'method', label: 'Method', type: 'select', options: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] },
-    { name: 'path', label: 'Path' },
+    { name: 'endpoint', label: 'Endpoint', placeholder: '/api/v1/users' },
     { name: 'status_code', label: 'Status', type: 'number' },
-    { name: 'response_time_ms', label: 'Response Time (ms)', type: 'number' },
-    { name: 'ip_address', label: 'IP Address' },
-    { name: 'country', label: 'Country' }
+    { name: 'duration_ms', label: 'Response Time (ms)', type: 'number' },
+    { name: 'ip_address', label: 'IP Address' }
   ],
   columns: [
     { key: 'created_at', label: 'Time', date: true, primary: true },
     { key: 'api_key_id', label: 'API Key', custom: 'apikey' },
-    { key: 'endpoint_id', label: 'Endpoint', custom: 'endpoint' },
     { key: 'method', label: 'Method', badge: true },
     { key: 'status_code', label: 'Status', status: true },
-    { key: 'response_time_ms', label: 'Response Time' },
-    { key: 'ip_address', label: 'IP' }
+    { key: 'duration_ms', label: 'Response Time' }
   ],
   defaults: {}
 });

@@ -1,5 +1,6 @@
 // Exercises the full CRUD cycle for every module through the real HTTP
 // endpoints (forms, CSRF, redirects). Run with: node scripts/test-crud.js
+require('dotenv').config();
 const http = require('http');
 
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
@@ -80,7 +81,11 @@ function report(label, ok, detail = '') {
 
   const loginPage = await request('GET', '/login');
   const csrf = csrfFrom(loginPage.body);
-  await request('POST', '/login', { form: { email: EMAIL, password: PASSWORD, _csrf: csrf } });
+  const login = await request('POST', '/login', { form: { email: EMAIL, password: PASSWORD, _csrf: csrf } });
+  if (login.status !== 302 || (login.headers.location || '').includes('/login')) {
+    console.error(`[crud] LOGIN FAILED (${login.status} -> ${login.headers.location || 'no redirect'})`);
+    process.exit(1);
+  }
   console.log('[crud] logged in\n');
 
   for (const mod of MODULES) {

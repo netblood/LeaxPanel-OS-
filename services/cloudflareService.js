@@ -130,6 +130,22 @@ class CloudflareService {
   }
 
   /**
+   * Delete a DNS record by its Cloudflare record ID.
+   */
+  async deleteRecordById(apiToken, zoneId, recordId) {
+    try {
+      const res = await fetch(`${CF_API_BASE}/zones/${zoneId}/dns_records/${recordId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${apiToken}` }
+      });
+      const data = await res.json();
+      return data.success ? { success: true } : { success: false, error: data.errors?.[0]?.message || 'Failed to delete record' };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
    * Get SSL/TLS certificate status for a zone.
    */
   async getSSLCertificateStatus(apiToken, zoneId) {
@@ -176,6 +192,26 @@ class CloudflareService {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ value: 'on' })
+      });
+      const data = await res.json();
+      return data.success ? { success: true, result: data.result } : { success: false, error: data.errors?.[0]?.message };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
+   * Set an arbitrary zone setting (always_use_https, automatic_https_rewrites, min_tls_version, ...).
+   */
+  async setZoneSetting(apiToken, zoneId, settingName, value) {
+    try {
+      const res = await fetch(`${CF_API_BASE}/zones/${zoneId}/settings/${settingName}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${apiToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ value })
       });
       const data = await res.json();
       return data.success ? { success: true, result: data.result } : { success: false, error: data.errors?.[0]?.message };

@@ -50,10 +50,11 @@ router.get('/', async (req, res) => {
     const cfZoneId = panelSettings.get('cloudflare_zone_id');
     if (cfApiToken && cfZoneId) {
       cloudflareConfigured = true;
-      const validation = await cloudflareService.validateCredentials(cfApiToken);
+      const validation = await cloudflareService.validateToken(cfApiToken);
       if (validation.success) {
         cloudflareValidated = true;
-        zones = await cloudflareService.getZones();
+        const zonesResult = await cloudflareService.listZones(cfApiToken);
+        zones = zonesResult.success && Array.isArray(zonesResult.result) ? zonesResult.result : [];
       }
     }
   } catch (err) {
@@ -168,14 +169,15 @@ router.post('/domain', handleValidationErrors, async (req, res) => {
 
     // Validate Cloudflare credentials if provided
     if (cloudflareApiToken && cloudflareZoneId) {
-      const validation = await cloudflareService.validateCredentials(cloudflareApiToken);
+      const validation = await cloudflareService.validateToken(cloudflareApiToken);
       if (!validation.success) {
         req.flash('error', `Cloudflare validation failed: ${validation.error}`);
         return res.redirect('/setup');
       }
       
       // Verify zone ID matches
-      const zones = await cloudflareService.getZones();
+      const zonesResult = await cloudflareService.listZones(cloudflareApiToken);
+      const zones = zonesResult.success && Array.isArray(zonesResult.result) ? zonesResult.result : [];
       const zone = zones.find(z => z.id === cloudflareZoneId);
       if (!zone) {
         req.flash('error', 'Invalid Cloudflare Zone ID. Please check and try again.');

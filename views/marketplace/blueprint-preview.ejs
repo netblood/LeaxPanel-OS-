@@ -1,0 +1,101 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><%= blueprint.name %></h1>
+    <p class="page-subtitle"><%= pageTitle %></p>
+  </div>
+  <div class="page-actions">
+    <a href="/templates/blueprints" class="btn btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Back to Blueprints
+    </a>
+    <a href="/templates/<%= blueprint.id %>/preview" class="btn btn-ghost">View Template</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h3><%= blueprint.name %></h3>
+      <p><%= blueprint.description || 'No description provided.' %></p>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="table-wrap">
+      <table class="data-table">
+        <tbody>
+          <tr>
+            <td class="cell-primary" style="width:220px;">Category</td>
+            <td><%= blueprint.category || '—' %></td>
+          </tr>
+          <tr>
+            <td class="cell-primary">Author</td>
+            <td><%= blueprint.author || '—' %></td>
+          </tr>
+          <tr>
+            <td class="cell-primary">Version</td>
+            <td><%= blueprint.version || '—' %></td>
+          </tr>
+          <tr>
+            <td class="cell-primary">Rating</td>
+            <td><%= blueprint.rating === null || blueprint.rating === undefined ? '—' : blueprint.rating %></td>
+          </tr>
+          <tr>
+            <td class="cell-primary">Downloads</td>
+            <td><%= blueprint.downloads === null || blueprint.downloads === undefined ? '—' : blueprint.downloads %></td>
+          </tr>
+          <tr>
+            <td class="cell-primary">Verified</td>
+            <td><%= blueprint.is_verified ? 'Yes' : 'No' %></td>
+          </tr>
+          <tr>
+            <td class="cell-primary">Official</td>
+            <td><%= blueprint.is_official ? 'Yes' : 'No' %></td>
+          </tr>
+          <tr>
+            <td class="cell-primary">Created</td>
+            <td><%= blueprint.created_at || '—' %></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h3>Included Services</h3>
+      <p><%= services.length %> service<%= services.length === 1 ? '' : 's' %> in this blueprint</p>
+    </div>
+  </div>
+  <div class="card-body">
+    <% if (!services.length) { %>
+      <div class="empty-state">
+        <div class="empty-icon">◇</div>
+        <h3>No services configured</h3>
+        <p>This blueprint does not list any services yet.</p>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Template</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% services.forEach(function(service) { %>
+              <tr>
+                <td class="cell-primary"><%= service.name || service.template || 'Service' %></td>
+                <td><%= service.type || '—' %></td>
+                <td><%= service.template || '—' %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

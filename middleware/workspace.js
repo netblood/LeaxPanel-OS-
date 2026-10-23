@@ -21,24 +21,30 @@ async function workspaceContext(req, res, next) {
     // Get user's workspaces
     const userWorkspaces = await workspaceService.getUserWorkspaces(userId);
 
-    // Determine active workspace
-    let activeWorkspaceId = req.session.activeWorkspaceId;
-    let activeWorkspace = null;
+  // Workspace IDs are integers in the database, while session/query values arrive as strings
+  const normalizeWorkspaceId = (value) => {
+    const parsed = parseInt(value, 10);
+    return Number.isInteger(parsed) ? parsed : null;
+  };
 
-    // Check if workspace is specified in query/header (for workspace switching)
-    const queryWorkspaceId = req.query.workspace;
-    const headerWorkspaceId = req.headers['x-workspace-id'];
+  // Determine active workspace
+  let activeWorkspaceId = normalizeWorkspaceId(req.session.activeWorkspaceId);
+  let activeWorkspace = null;
 
-    if (queryWorkspaceId || headerWorkspaceId) {
-      const targetWorkspaceId = queryWorkspaceId || headerWorkspaceId;
-      // Verify user has access to this workspace
-      const hasAccess = userWorkspaces.some(w => w.id === targetWorkspaceId);
-      if (hasAccess) {
-        activeWorkspaceId = targetWorkspaceId;
-        // Store in session for persistence
-        req.session.activeWorkspaceId = activeWorkspaceId;
-      }
+  // Check if workspace is specified in query/header (for workspace switching)
+  const queryWorkspaceId = req.query.workspace;
+  const headerWorkspaceId = req.headers['x-workspace-id'];
+
+  if (queryWorkspaceId || headerWorkspaceId) {
+    const targetWorkspaceId = normalizeWorkspaceId(queryWorkspaceId || headerWorkspaceId);
+    // Verify user has access to this workspace
+    const hasAccess = targetWorkspaceId !== null && userWorkspaces.some(w => Number(w.id) === targetWorkspaceId);
+    if (hasAccess) {
+      activeWorkspaceId = targetWorkspaceId;
+      // Store in session for persistence
+      req.session.activeWorkspaceId = activeWorkspaceId;
     }
+  }
 
     // If no active workspace but user has workspaces, use the first one
     if (!activeWorkspaceId && userWorkspaces.length > 0) {
@@ -53,7 +59,7 @@ async function workspaceContext(req, res, next) {
       activeWorkspace = await workspaceService.getWorkspace(activeWorkspaceId);
       if (activeWorkspace) {
         // Find member info from userWorkspaces (getUserWorkspaces already returns role/permissions)
-        const memberWorkspace = userWorkspaces.find(w => w.id === activeWorkspaceId);
+        const memberWorkspace = userWorkspaces.find(w => Number(w.id) === activeWorkspaceId);
         if (memberWorkspace) {
           req.workspaceMember = {
             role: memberWorkspace.role,
@@ -76,6 +82,8 @@ async function workspaceContext(req, res, next) {
     res.locals.activeWorkspace = activeWorkspace;
     res.locals.userWorkspaces = userWorkspaces;
     res.locals.isOwner = isOwner;
+    res.locals.workspaceMember = req.workspaceMember || null;
+    res.locals.workspacePermissions = req.workspacePermissions || [];
     res.locals.workspaceTypes = {
       personal: { icon: '👤', label: 'Personal', color: '#8b5cf6' },
       clients: { icon: '🏢', label: 'Clients', color: '#06b6d4' },
@@ -89,7 +97,11 @@ async function workspaceContext(req, res, next) {
     console.error('Workspace context middleware error:', error);
     // Don't block the request on workspace context errors
     req.userWorkspaces = [];
+    req.workspaceMember = null;
+    req.workspacePermissions = [];
     res.locals.userWorkspaces = [];
+    res.locals.workspaceMember = null;
+    res.locals.workspacePermissions = [];
     next();
   }
 }

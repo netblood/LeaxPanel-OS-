@@ -190,6 +190,7 @@ router.get('/', async (req, res) => {
         },
         activeWorkspace: req.workspace,
         userWorkspaces: req.userWorkspaces,
+        workspaceMember: req.workspaceMember || null,
         stats: globalStats,
         securityScore,
         currentPath: req.path

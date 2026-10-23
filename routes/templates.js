@@ -199,7 +199,7 @@ router.get('/:id/reviews', (req, res) => {
 // Blueprints (multi-service deployments)
 router.get('/blueprints', (req, res) => {
   try {
-    const blueprints = db.all('SELECT * FROM marketplace_blueprints WHERE is_active = 1 ORDER BY created_at DESC');
+    const blueprints = db.all('SELECT * FROM marketplace_blueprints ORDER BY created_at DESC');
     
     res.render('marketplace/blueprints', {
       title: 'Blueprints',

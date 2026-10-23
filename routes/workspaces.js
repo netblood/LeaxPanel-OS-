@@ -72,6 +72,75 @@ router.post('/', [
 });
 
 /**
+ * GET /dashboard - Get dynamic dashboard for current workspace
+ */
+router.get('/dashboard', async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const workspaceId = req.session.activeWorkspaceId || req.query.workspaceId;
+    
+    if (!workspaceId) {
+      // Get default dashboard
+      const dashboard = await dashboardService.getDefaultDashboard(userId);
+      return res.json({ dashboard });
+    }
+
+    const dashboard = await dashboardService.generateDashboard(userId, workspaceId);
+    res.json({ dashboard });
+  } catch (err) {
+    console.error('Get dashboard error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * GET /dashboard/summary - Get dashboard summary for sidebar/widgets
+ */
+router.get('/dashboard/summary', async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const workspaceId = req.session.activeWorkspaceId || req.query.workspaceId;
+    
+    if (!workspaceId) {
+      const dashboard = await dashboardService.getDefaultDashboard(userId);
+      if (!dashboard) {
+        return res.json({ summary: null });
+      }
+      workspaceId = dashboard.workspace.id;
+    }
+
+    const summary = await dashboardService.getDashboardSummary(userId, workspaceId);
+    res.json({ summary });
+  } catch (err) {
+    console.error('Get dashboard summary error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * GET /dashboard/service/:serviceType - Get service-specific dashboard
+ */
+router.get('/dashboard/service/:serviceType', async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const workspaceId = req.session.activeWorkspaceId || req.query.workspaceId;
+    
+    if (!workspaceId) {
+      return res.status(400).json({ error: 'No active workspace' });
+    }
+
+    const dashboard = await dashboardService.getServiceDashboard(userId, workspaceId, req.params.serviceType);
+    res.json({ dashboard });
+  } catch (err) {
+    if (err.message === 'No access to this service') {
+      return res.status(403).json({ error: err.message });
+    }
+    console.error('Get service dashboard error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * GET /workspaces/:id - Get workspace details
  */
 router.get('/:id', idParam, handleValidationErrors, async (req, res) => {
@@ -136,9 +205,10 @@ router.post('/:id/switch', idParam, handleValidationErrors, async (req, res) => 
   try {
     const userId = req.session.user.id;
     const result = await workspaceService.switchWorkspace(userId, req.params.id);
-    
-    // Update session
-    req.session.activeWorkspaceId = req.params.id;
+
+    // Update session (IDs are integers in the DB; req.params.id is a string)
+    const workspaceId = parseInt(req.params.id, 10);
+    req.session.activeWorkspaceId = Number.isInteger(workspaceId) ? workspaceId : req.params.id;
     req.session.activeWorkspace = result.workspace;
     req.session.workspaceMembership = result.membership;
     
@@ -475,72 +545,6 @@ router.get('/:id/permission-matrix', idParam, handleValidationErrors, requireWor
   } catch (err) {
     console.error('Get permission matrix error:', err);
     res.status(500).json({ error: 'Failed to get permission matrix' });
-  }
-});
-
-/**
- * GET /dashboard - Get dynamic dashboard for current workspace
- */
-router.get('/dashboard', async (req, res) => {
-  try {
-    const userId = req.session.user.id;
-    const workspaceId = req.session.activeWorkspaceId || req.query.workspaceId;
-    
-    if (!workspaceId) {
-      // Get default dashboard
-      const dashboard = await dashboardService.getDefaultDashboard(userId);
-      return res.json({ dashboard });
-    }
-
-    const dashboard = await dashboardService.generateDashboard(userId, workspaceId);
-    res.json({ dashboard });
-  } catch (err) {
-    console.error('Get dashboard error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-/**
- * GET /dashboard/summary - Get dashboard summary for sidebar/widgets
- */
-router.get('/dashboard/summary', async (req, res) => {
-  try {
-    const userId = req.session.user.id;
-    const workspaceId = req.session.activeWorkspaceId || req.query.workspaceId;
-    
-    if (!workspaceId) {
-      const dashboard = await dashboardService.getDefaultDashboard(userId);
-      if (!dashboard) {
-        return res.json({ summary: null });
-      }
-      workspaceId = dashboard.workspace.id;
-    }
-
-    const summary = await dashboardService.getDashboardSummary(userId, workspaceId);
-    res.json({ summary });
-  } catch (err) {
-    console.error('Get dashboard summary error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-/**
- * GET /dashboard/service/:serviceType - Get service-specific dashboard
- */
-router.get('/dashboard/service/:serviceType', async (req, res) => {
-  try {
-    const userId = req.session.user.id;
-    const workspaceId = req.session.activeWorkspaceId || req.query.workspaceId;
-    
-    if (!workspaceId) {
-      return res.status(400).json({ error: 'No active workspace' });
-    }
-
-    const dashboard = await dashboardService.getServiceDashboard(userId, workspaceId, req.params.serviceType);
-    res.json({ dashboard });
-  } catch (err) {
-    console.error('Get service dashboard error:', err);
-    res.status(500).json({ error: err.message });
   }
 });
 

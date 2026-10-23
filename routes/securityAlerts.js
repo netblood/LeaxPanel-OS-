@@ -68,12 +68,7 @@ router.post('/acknowledge-all', async (req, res) => {
 
 router.delete('/:id', idParam, handleValidationErrors, async (req, res) => {
   try {
-    await new Promise((resolve, reject) => {
-      db.run('DELETE FROM security_alerts WHERE id = ? AND user_id = ?', [req.params.id, req.session.user.id], (err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
+    db.run('DELETE FROM security_alerts WHERE id = ? AND user_id = ?', [req.params.id, req.session.user.id]);
     res.json({ success: true });
   } catch (err) {
     logger.error('Delete alert error:', err);

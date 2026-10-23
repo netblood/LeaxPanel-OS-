@@ -48,7 +48,13 @@ const PERMISSIONS = [
   'apikeys:view', 'apikeys:create', 'apikeys:delete',
   'doctor:view', 'doctor:run',
   'terminal:view',
-  'system:manage'
+  'system:manage',
+  'audit:view',
+  'securityalerts:view',
+  'securityrules:view',
+  'loginpage:view',
+  'api:view',
+  'webhooks:view'
 ];
 
 const VIEW_ONLY = PERMISSIONS.filter(p => p.endsWith(':view'));
@@ -70,24 +76,6 @@ const ROLE_PERMISSIONS = {
     'communication:view',
     'filemanager:view', 'filemanager:upload', 'filemanager:edit',
     'terminal:view',
-    'whatsapp:view', 'discord:view', 'telegram:view', 'n8n:view',
-    'email:view', 'cloudflare:view', 'aihosting:view', 'marketplace:view',
-    'bots:view', 'bots:create', 'website:view', 'website:create',
-    'requests:view', 'requests:create', 'settings:view'
-  ],
-  reseller: [
-    'users:view', 'users:create', 'users:edit',
-    'services:view', 'services:create', 'services:edit',
-    'apps:view', 'apps:create', 'apps:edit',
-    'ai:view', 'ai:create', 'ai:edit',
-    'monitoring:view',
-    'backups:view', 'backups:create',
-    'billing:view',
-    'domains:view', 'domains:create', 'domains:edit',
-    'databases:view', 'databases:create', 'databases:edit',
-    'storage:view', 'storage:create', 'storage:edit',
-    'communication:view',
-    'filemanager:view', 'filemanager:upload', 'filemanager:edit',
     'whatsapp:view', 'discord:view', 'telegram:view', 'n8n:view',
     'email:view', 'cloudflare:view', 'aihosting:view', 'marketplace:view',
     'bots:view', 'bots:create', 'website:view', 'website:create',
