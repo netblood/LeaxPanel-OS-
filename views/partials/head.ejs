@@ -2,6 +2,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="LeaxPanel - Cloud Platform Operating System. Host anything, manage everything, deploy anywhere.">
 <meta name="theme-color" content="#0a0b14">
+<meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
 <title><%= typeof title !== 'undefined' && title ? title : 'LeaxPanel' %> · <%= (typeof panelSettings !== 'undefined' && panelSettings && panelSettings.panel_name) ? panelSettings.panel_name : 'LeaxPanel' %></title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

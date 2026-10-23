@@ -293,14 +293,9 @@
 
   <%- include('../partials/footer') %>
   <script>
+    // Uses global window.switchWorkspace from main.js
     function switchWorkspace(workspaceId) {
-      fetch('/workspaces/' + workspaceId + '/switch', { method: 'POST' })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            window.location.reload();
-          }
-        });
+      window.switchWorkspace(workspaceId);
     }
   </script>
 </body>

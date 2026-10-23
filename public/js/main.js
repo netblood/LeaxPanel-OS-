@@ -619,17 +619,27 @@
     }
     fetch('/workspaces/' + workspaceId + '/switch', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
-    }).then(function(res) {
-      if (res.ok) {
-        window.location.reload();
-      } else {
-        toast('Failed to switch workspace', 'error');
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
       }
+    }).then(function(res) {
+      return res.json().then(function(data) {
+        if (data.success) {
+          window.location.reload();
+        } else {
+          window.leaxToast(data.error || 'Failed to switch workspace', 'error');
+          if (btn) { btn.classList.remove('active'); }
+        }
+      });
     }).catch(function() {
-      toast('Failed to switch workspace', 'error');
+      window.leaxToast('Failed to switch workspace', 'error');
+      if (btn) { btn.classList.remove('active'); }
     });
   }
+
+  // Expose globally for inline handlers in templates
+  window.switchWorkspace = switchWorkspace;
 
   /* ------------------------------------------------------------------ init */
   function init() {

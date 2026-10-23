@@ -147,6 +147,7 @@ router.post('/:id/switch', idParam, handleValidationErrors, async (req, res) => 
     });
 
     res.json({ 
+      success: true,
       workspace: result.workspace, 
       membership: result.membership,
       message: `Switched to ${result.workspace.name}`

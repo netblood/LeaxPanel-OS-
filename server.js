@@ -38,6 +38,7 @@ const setupRoutes = require('./routes/setup');
 const doctorRoutes = require('./routes/doctor');
 const cloudflareRoutes = require('./routes/cloudflare');
 const workspaceRoutes = require('./routes/workspaces');
+const webviewRoutes = require('./routes/webview');
 const terminalRoutes = require('./routes/terminal');
 
 const authMiddleware = require('./middleware/auth');
@@ -220,6 +221,9 @@ app.use('/cloudflare', cloudflareRoutes);
 
 // Workspace management
 app.use('/workspaces', authMiddleware.requireAuth, workspaceRoutes);
+
+// Webview / Site Preview
+app.use('/webview', authMiddleware.requireAuth, webviewRoutes);
 
 // Declarative module routers (apps, domains, databases, bots, ...)
 app.use('/', authMiddleware.requireAuth, moduleRoutes);

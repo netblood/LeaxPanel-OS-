@@ -108,7 +108,7 @@ function switchWorkspace(workspaceId) {
       // Reload page to reflect new workspace context
       window.location.reload();
     } else {
-      showToast(data.error || 'Failed to switch workspace', 'error');
+  window.leaxToast(data.error || 'Failed to switch workspace', 'error');
       if (btn) {
         btn.classList.remove('switching');
         btn.disabled = false;
@@ -117,7 +117,7 @@ function switchWorkspace(workspaceId) {
   })
   .catch(err => {
     console.error('Workspace switch error:', err);
-    showToast('Failed to switch workspace', 'error');
+    window.leaxToast('Failed to switch workspace', 'error');
     if (btn) {
       btn.classList.remove('switching');
       btn.disabled = false;

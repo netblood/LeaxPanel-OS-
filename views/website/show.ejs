@@ -6,6 +6,9 @@
   <div class="page-actions">
     <a href="/<%= module %>" class="btn btn-ghost">Back to list</a>
     <a href="/<%= module %>/<%= item.id %>/edit" class="btn btn-primary">Edit</a>
+    <% if (item.domain) { %>
+      <a href="/webview?url=http://<%= item.domain %>" class="btn btn-outline">Preview</a>
+    <% } %>
   </div>
 </div>
 
