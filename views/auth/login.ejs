@@ -23,8 +23,9 @@
     <%- loginBgImage ? '--bg-image: url(' + loginBgImage + ');' : '' %>
   }
 </style>
+    <link rel="stylesheet" href="/css/style.css?v=<%= typeof appVersion !== 'undefined' ? appVersion : '1.0.0' %>">
 
-<div class="auth-page premium-login" style="<%- loginBgImage ? 'background-image: var(--bg-image); background-size: cover; background-position: center; background-attachment: fixed;' : '' %><%- loginVideoBg ? '' : '' %>">
+    <div class="auth-page premium-login" style="<%- loginBgImage ? 'background-image: var(--bg-image); background-size: cover; background-position: center; background-attachment: fixed;' : '' %><%- loginVideoBg ? '' : '' %>">
   <%- loginVideoBg ? '<video class="auth-video-bg" autoplay muted loop playsinline><source src="' + loginVideoBg + '" type="video/mp4"></video>' : '' %>
   <%- loginBgImage ? '<div class="auth-bg-overlay"></div>' : '' %>
   

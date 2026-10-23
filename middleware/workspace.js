@@ -50,16 +50,20 @@ async function workspaceContext(req, res, next) {
 
     // Get active workspace details
     if (activeWorkspaceId) {
-      activeWorkspace = await workspaceService.getWorkspaceById(activeWorkspaceId);
+      activeWorkspace = await workspaceService.getWorkspace(activeWorkspaceId);
       if (activeWorkspace) {
-        // Get member info for this workspace
-        const member = await workspaceService.getWorkspaceMember(activeWorkspaceId, userId);
-        if (member) {
-          req.workspaceMember = member;
-          res.locals.workspaceMember = member;
+        // Find member info from userWorkspaces (getUserWorkspaces already returns role/permissions)
+        const memberWorkspace = userWorkspaces.find(w => w.id === activeWorkspaceId);
+        if (memberWorkspace) {
+          req.workspaceMember = {
+            role: memberWorkspace.role,
+            status: memberWorkspace.member_status,
+            permissions: memberWorkspace.member_permissions
+          };
+          res.locals.workspaceMember = req.workspaceMember;
 
           // Get effective permissions for this user in this workspace
-          const permissions = await permissionService.getUserEffectivePermissions(activeWorkspaceId, userId);
+          const permissions = await permissionService.getUserPermissions(userId, activeWorkspaceId);
           req.workspacePermissions = permissions;
           res.locals.workspacePermissions = permissions;
         }

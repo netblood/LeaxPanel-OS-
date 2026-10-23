@@ -94,9 +94,8 @@ app.use(session({
   saveUninitialized: false,
   rolling: true,
   cookie: {
-    // 'auto' sets the Secure flag only when the request arrived over HTTPS,
-    // so the panel still works on http://localhost:3000 in production mode.
-    secure: 'auto',
+    // Use 'false' for HTTP-only deployments; 'auto' only sets Secure on HTTPS
+    secure: false,
     httpOnly: true,
     maxAge: parseInt(process.env.SESSION_MAX_AGE || '86400000', 10),
     sameSite: 'lax'
@@ -108,8 +107,26 @@ app.use(flash());
 
 /* ------------------------------------------------------------------ CSRF */
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api/')) return next();
-  return csrf({ cookie: true })(req, res, next);
+  // Skip CSRF for API routes and static assets (CSS, JS, images, etc.)
+  if (
+    req.path.startsWith('/api/') ||
+    req.path.startsWith('/css/') ||
+    req.path.startsWith('/js/') ||
+    req.path.startsWith('/images/') ||
+    req.path.startsWith('/fonts/') ||
+    req.path === '/favicon.ico'
+  ) {
+    return next();
+  }
+  return csrf({ 
+    cookie: {
+      key: '_csrf',
+      secure: false,        // Allow HTTP (non-HTTPS) deployments
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/'
+    }
+  })(req, res, next);
 });
 
 /* ------------------------------------------------------- global variables */
@@ -153,7 +170,7 @@ app.use((req, res, next) => {
   });
 
   /* ------------------------------------------------------- workspace context */
-  app.use(authMiddleware.requireAuth, workspaceMiddleware.workspaceContext);
+  app.use(workspaceMiddleware.workspaceContext);
 
   /* ---------------------------------------------------------- layout engine */
   app.use(expressLayouts);
