@@ -93,11 +93,100 @@ router.get('/', async (req, res) => {
 
     // If we have workspace dashboard data, render the new workspace dashboard
     if (workspaceId && dashboardData) {
+      // Transform dashboard service output to match view expectations
+      const summary = {
+        websites: dashboardData.stats.summary.websites || 0,
+        apps: dashboardData.stats.summary.apps || 0,
+        domains: dashboardData.stats.summary.domains || 0,
+        databases: dashboardData.stats.summary.databases || 0,
+        bots: dashboardData.stats.summary.bots || 0,
+        workflows: dashboardData.stats.summary.workflows || 0,
+        aiAgents: dashboardData.stats.summary.ai || 0,
+        backups: dashboardData.stats.summary.backups || 0,
+        storageBuckets: dashboardData.stats.summary.storage || 0,
+        emailAccounts: dashboardData.stats.summary.email || 0
+      };
+
+      // Card type → icon + color mapping
+      const cardMeta = {
+        apps: { icon: '📦', color: '#3b82f6', description: 'Deploy and manage your applications' },
+        websites: { icon: '🌐', color: '#06b6d4', description: 'Host websites and web applications' },
+        databases: { icon: '🗄️', color: '#10b981', description: 'Managed databases for your projects' },
+        storage: { icon: '📁', color: '#84cc16', description: 'Object storage and file management' },
+        bots: { icon: '🤖', color: '#f59e0b', description: 'Telegram, Discord, and WhatsApp bots' },
+        ai: { icon: '🧠', color: '#ec4899', description: 'AI agents and model hosting' },
+        email: { icon: '📧', color: '#0ea5e9', description: 'Email accounts and mail services' },
+        domains: { icon: '🔗', color: '#6366f1', description: 'Domain management and DNS' },
+        backups: { icon: '💾', color: '#ef4444', description: 'Automated backups and restores' },
+        workflows: { icon: '⚙️', color: '#8b5cf6', description: 'n8n workflows and automations' }
+      };
+
+      // Transform service cards to match view fields
+      const serviceCards = dashboardData.cards.map(card => {
+        const meta = cardMeta[card.type] || { icon: '📦', color: '#6b7280', description: '' };
+        return {
+          serviceType: card.type,
+          label: card.title || card.type,
+          count: card.count || 0,
+          description: meta.description,
+          color: meta.color,
+          icon: meta.icon,
+          stats: card.data || {},
+          items: [], // populated by frontend if needed
+          createAction: card.canCreate ? { href: card.link || `/${card.type}/create`, label: `New ${card.title || card.type}` } : null,
+          href: card.link || `/${card.type}`,
+          quickActions: [],
+          canCreate: card.canCreate || false,
+          canManage: card.canManage || false
+        };
+      });
+
+      // Extract quick actions from cards
+      const quickActions = [];
+      dashboardData.cards.forEach(card => {
+        if (card.type === 'quick-actions' && card.actions) {
+          card.actions.forEach(a => {
+            quickActions.push({
+              label: a.label,
+              href: a.href,
+              icon: a.icon || 'plus',
+              color: '#3b82f6'
+            });
+          });
+        }
+      });
+
+      // Map activity items to view-expected fields
+      const recentActivity = (dashboardData.activity || []).map(a => {
+        const actionMeta = {
+          created: { color: '#10b981', icon: 'plus', message: `${a.user || 'User'} created ${a.resource || 'resource'}` },
+          updated: { color: '#3b82f6', icon: 'edit', message: `${a.user || 'User'} updated ${a.resource || 'resource'}` },
+          deleted: { color: '#ef4444', icon: 'trash-2', message: `${a.user || 'User'} deleted ${a.resource || 'resource'}` },
+          started: { color: '#22c55e', icon: 'play', message: `${a.user || 'User'} started ${a.resource || 'resource'}` },
+          stopped: { color: '#f59e0b', icon: 'square', message: `${a.user || 'User'} stopped ${a.resource || 'resource'}` },
+          failed: { color: '#ef4444', icon: 'alert-circle', message: `${a.user || 'User'} failed ${a.resource || 'resource'}` }
+        };
+        const meta = actionMeta[a.action?.toLowerCase()] || { color: '#6b7280', icon: 'activity', message: `${a.user || 'User'} ${a.action || 'activity'} ${a.resource || ''}` };
+        return {
+          color: meta.color,
+          icon: meta.icon,
+          message: meta.message,
+          user: a.user || 'System',
+          time: a.timestamp ? new Date(a.timestamp).toLocaleString() : ''
+        };
+      });
+
       return res.render('workspaces/dashboard', {
         title: 'Dashboard',
         pageTitle: 'Dashboard',
         pageSubtitle: `Workspace: ${req.workspace.name}`,
-        dashboard: dashboardData,
+        dashboardData: {
+          summary,
+          serviceCards,
+          resourceUsage: dashboardData.resources,
+          recentActivity,
+          quickActions
+        },
         activeWorkspace: req.workspace,
         userWorkspaces: req.userWorkspaces,
         stats: globalStats,

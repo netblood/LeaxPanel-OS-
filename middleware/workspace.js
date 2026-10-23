@@ -75,6 +75,7 @@ async function workspaceContext(req, res, next) {
     req.userWorkspaces = userWorkspaces;
     res.locals.activeWorkspace = activeWorkspace;
     res.locals.userWorkspaces = userWorkspaces;
+    res.locals.isOwner = isOwner;
     res.locals.workspaceTypes = {
       personal: { icon: '👤', label: 'Personal', color: '#8b5cf6' },
       clients: { icon: '🏢', label: 'Clients', color: '#06b6d4' },

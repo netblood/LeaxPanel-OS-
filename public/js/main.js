@@ -608,6 +608,29 @@
     });
   }
 
+  /* ---------------------------------------------------------- switch workspace */
+  function switchWorkspace(workspaceId) {
+    const btn = document.querySelector('.workspace-item[data-workspace-id="' + workspaceId + '"]');
+    if (btn) {
+      document.querySelectorAll('.workspace-item').forEach(function(el) {
+        el.classList.remove('active');
+      });
+      btn.classList.add('active');
+    }
+    fetch('/workspaces/' + workspaceId + '/switch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    }).then(function(res) {
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        toast('Failed to switch workspace', 'error');
+      }
+    }).catch(function() {
+      toast('Failed to switch workspace', 'error');
+    });
+  }
+
   /* ------------------------------------------------------------------ init */
   function init() {
     initTheme();
