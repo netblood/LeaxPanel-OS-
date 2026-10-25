@@ -30,7 +30,6 @@ const ROUTES = [
   '/communication', '/communication/create',
   '/cloudflare', '/cloudflare/create',
   '/requests', '/requests/create',
-  '/billing', '/billing/create',
   '/marketplace', '/marketplace/create',
   '/users', '/users/create', '/users/roles',
   '/security', '/security/audit', '/security-alerts',

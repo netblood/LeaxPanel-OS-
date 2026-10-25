@@ -1,4 +1,4 @@
-# ⚡ LeaxPanel(os)
+# LeaxPanel(os)
 
 **Host Anything. Manage Everything. Deploy Anywhere.**
 
@@ -9,7 +9,7 @@ No build step. No TypeScript. No React. No Vue. No Docker, PostgreSQL, Redis or 
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [One-Command Install](#one-command-install)
 - [Quick Start](#quick-start)
@@ -30,7 +30,7 @@ No build step. No TypeScript. No React. No Vue. No Docker, PostgreSQL, Redis or 
 
 ---
 
-## 🚀 One-Command Install
+## One-Command Install
 
 The installer handles **everything**: Node.js check, secret generation, dependency install, database migrations, seeds, admin creation and verification.
 
@@ -82,7 +82,7 @@ The generated credentials are also written to `INSTALL_CREDENTIALS.txt`.
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 1. Run the installer (`install.bat`, `install.sh` or the one-liner above).
 2. Start the panel: `run.bat`, `./run.sh` or `npm start`.
@@ -92,7 +92,7 @@ The generated credentials are also written to `INSTALL_CREDENTIALS.txt`.
 
 ---
 
-## 📦 Manual Installation
+## Manual Installation
 
 ```bash
 git clone https://github.com/netblood/LeaxPanel-OS-.git
@@ -109,7 +109,7 @@ Requirements: **Node.js 22+** and **npm 10+**. Nothing else.
 
 ---
 
-## 🔑 Default Credentials
+## Default Credentials
 
 | Field | Value |
 | --- | --- |
@@ -120,7 +120,7 @@ Override with `ADMIN_EMAIL` / `ADMIN_PASSWORD` environment variables before runn
 
 ---
 
-## 🎯 Feature Tour
+## Feature Tour
 
 ### Dashboard
 
@@ -219,7 +219,7 @@ Users should not manually perform Linux tasks.
 
 ---
 
-## 📋 Module Management
+## Module Management
 
 Every Website/App/Bot should be manageable from UI with:
 
@@ -248,7 +248,7 @@ Everything has status indicators:
 
 ---
 
-## ✨ Feature Tour
+## Feature Tour
 
 ### Overview
 - **Dashboard** — CPU, RAM, disk, network, live counters, charts, latest logs, latest backups, activity feed, server health, security score and quick actions.
@@ -298,7 +298,7 @@ Everything has status indicators:
 
 ---
 
-## 🧱 Architecture
+## Architecture
 
 ```mermaid
 graph TD
@@ -329,7 +329,7 @@ graph TD
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Layer | Choice |
 | --- | --- |
@@ -347,7 +347,7 @@ graph TD
 
 ---
 
-## 📂 Project Layout
+## Project Layout
 
 ```text
 LeaxPanel/
@@ -388,7 +388,7 @@ LeaxPanel/
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 Everything lives in `.env` (created automatically by the installer).
 
@@ -415,7 +415,7 @@ Everything lives in `.env` (created automatically by the installer).
 
 ---
 
-## 🔌 REST API
+## REST API
 
 Every resource is available over JSON. Authenticate with the session cookie **or** an API key header.
 
@@ -448,7 +448,7 @@ Every API-key request is recorded in `api_usage_log` and visible at `/apikeys/us
 
 ---
 
-## 🛡 Roles & Permissions
+## Roles & Permissions
 
 | Role | Level | Purpose |
 | --- | --- | --- |
@@ -467,7 +467,7 @@ The full matrix is visible at **/users/roles**.
 
 ---
 
-## 🧰 Commands
+## Commands
 
 | Command | Description |
 | --- | --- |
@@ -486,7 +486,7 @@ The full matrix is visible at **/users/roles**.
 
 ---
 
-## 🩺 LeaxPanel Doctor
+## LeaxPanel Doctor
 
 Open **http://localhost:3000/doctor** (or run `npm run doctor`).
 
@@ -496,22 +496,22 @@ Checks performed:
 | --- | --- |
 | Node.js runtime | — |
 | Database connection | — |
-| Database migrations | ✅ applies pending migrations |
-| Administrator account | ✅ runs the seeds |
-| Storage directories | ✅ creates `data/`, `logs/`, `backups/` |
+| Database migrations | [OK] applies pending migrations |
+| Administrator account | [OK] runs the seeds |
+| Storage directories | [OK] creates `data/`, `logs/`, `backups/` |
 | Network ports | — |
-| Security secrets | ✅ generates missing keys in `.env` |
-| Roles & permissions | ✅ re-synchronises the matrix |
+| Security secrets | [OK] generates missing keys in `.env` |
+| Roles & permissions | [OK] re-synchronises the matrix |
 | Domains & SSL | — |
 | Backup system | — |
-| Log files | ✅ creates the log directory |
+| Log files | creates the log directory |
 | Setup wizard | — |
 
 Use **Fix everything** to apply every available fix in one click.
 
 ---
 
-## 🛠 Troubleshooting
+## Troubleshooting
 
 | Symptom | Fix |
 | --- | --- |
@@ -526,7 +526,7 @@ Use **Fix everything** to apply every available fix in one click.
 
 ---
 
-## 📚 Documentation & Links
+## Documentation & Links
 
 | Resource | Link |
 | --- | --- |
@@ -542,7 +542,7 @@ Use **Fix everything** to apply every available fix in one click.
 
 ---
 
-## 📄 License
+## License
 
 Released under the **MIT License**.
 

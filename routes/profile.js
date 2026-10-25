@@ -75,7 +75,7 @@ router.post('/password', handleValidationErrors, async (req, res) => {
 
 router.post('/2fa/disable', (req, res) => {
   try {
-    db.run('UPDATE users SET totp_secret = NULL, two_factor_enabled = 0 WHERE id = ?', [req.session.user.id]);
+    db.run('UPDATE users SET two_factor_secret = NULL, two_factor_enabled = 0 WHERE id = ?', [req.session.user.id]);
     req.flash('success', 'Two-factor authentication disabled.');
   } catch (err) {
     req.flash('error', 'Failed to disable two-factor authentication.');

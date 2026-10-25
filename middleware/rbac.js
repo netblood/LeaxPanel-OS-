@@ -12,7 +12,6 @@ const ROLES = [
   { name: 'manager', display_name: 'Manager', level: 70, description: 'Can manage services and users' },
   { name: 'developer', display_name: 'Developer', level: 60, description: 'Can deploy and manage applications' },
   { name: 'support', display_name: 'Support', level: 50, description: 'Can view and respond to support requests' },
-  { name: 'billing', display_name: 'Billing', level: 40, description: 'Can manage billing and invoices' },
   { name: 'user', display_name: 'User', level: 30, description: 'Standard user access' },
   { name: 'viewer', display_name: 'Viewer', level: 10, description: 'Read-only access to all features' }
 ];
@@ -25,7 +24,6 @@ const PERMISSIONS = [
   'monitoring:view',
   'backups:view', 'backups:create', 'backups:delete',
   'security:view', 'security:manage',
-  'billing:view', 'billing:manage',
   'domains:view', 'domains:create', 'domains:edit', 'domains:delete',
   'databases:view', 'databases:create', 'databases:edit', 'databases:delete',
   'storage:view', 'storage:create', 'storage:edit', 'storage:delete',
@@ -69,7 +67,6 @@ const ROLE_PERMISSIONS = {
     'ai:view', 'ai:create', 'ai:edit',
     'monitoring:view',
     'backups:view', 'backups:create',
-    'billing:view',
     'domains:view', 'domains:create', 'domains:edit',
     'databases:view', 'databases:create', 'databases:edit',
     'storage:view', 'storage:create', 'storage:edit',
@@ -89,7 +86,6 @@ const ROLE_PERMISSIONS = {
     'monitoring:view',
     'backups:view', 'backups:create',
     'security:view',
-    'billing:view',
     'domains:view', 'domains:edit',
     'databases:view', 'databases:edit',
     'storage:view', 'storage:create', 'storage:edit',
@@ -131,14 +127,6 @@ const ROLE_PERMISSIONS = {
       'requests:view', 'requests:create', 'requests:edit',
       'settings:view'
     ],
-  billing: [
-    'users:view', 'services:view',
-    'billing:view', 'billing:manage',
-    'domains:view', 'databases:view', 'storage:view',
-    'communication:view', 'filemanager:view', 'email:view',
-    'marketplace:view', 'bots:view', 'website:view',
-    'requests:view', 'settings:view'
-  ],
   user: [
     'services:view', 'services:create',
     'apps:view', 'apps:create',
@@ -213,7 +201,6 @@ function initializeRoles() {
         ('manager', 'Manager', 'Can manage services and users', 1),
         ('developer', 'Developer', 'Can deploy and manage applications', 1),
         ('support', 'Support', 'Can view and respond to support requests', 1),
-        ('billing', 'Billing', 'Can manage billing and invoices', 1),
         ('user', 'User', 'Standard user access', 1),
         ('viewer', 'Viewer', 'Read-only access to all features', 1);
     `);

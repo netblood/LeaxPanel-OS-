@@ -3,11 +3,13 @@
   const workspaces = userWorkspaces || [];
   const currentWorkspace = activeWorkspace || null;
   const workspaceTypes = {
-    personal: { icon: '👤', label: 'Personal', color: '#8b5cf6' },
-    clients: { icon: '🏢', label: 'Clients', color: '#06b6d4' },
-    company: { icon: '🏭', label: 'Company', color: '#10b981' },
-    development: { icon: '💻', label: 'Development', color: '#f59e0b' },
-    production: { icon: '🚀', label: 'Production', color: '#ef4444' }
+    personal: { icon: 'user', label: 'Personal', color: '#8b5cf6' },
+    clients: { icon: 'users', label: 'Clients', color: '#06b6d4' },
+    company: { icon: 'briefcase', label: 'Company', color: '#10b981' },
+    business: { icon: 'briefcase', label: 'Business', color: '#10b981' },
+    development: { icon: 'code-2', label: 'Development', color: '#f59e0b' },
+    production: { icon: 'server', label: 'Production', color: '#ef4444' },
+    testing: { icon: 'flask-conical', label: 'Testing', color: '#06b6d4' }
   };
 %>
 
@@ -28,7 +30,7 @@
   <div class="workspace-list" id="workspaceList">
     <% workspaces.forEach(function(ws) { %>
       <%
-        const type = workspaceTypes[ws.type] || { icon: '📁', label: ws.type, color: '#6b7280' };
+        const type = workspaceTypes[ws.type] || { icon: 'folder', label: ws.type, color: '#6b7280' };
         const isActive = currentWorkspace && currentWorkspace.id === ws.id;
         const role = ws.member_role || 'member';
         const roleLabels = { owner: 'Owner', admin: 'Admin', manager: 'Manager', developer: 'Developer', member: 'Member', viewer: 'Viewer' };
@@ -40,12 +42,12 @@
         data-workspace-type="<%= ws.type %>"
         title="<%= ws.name %> (<%= roleLabels[role] || role %> - <%= type.label %>)"
       >
-        <span class="workspace-icon" style="background: <%= type.color %>"><%= type.icon %></span>
+        <span class="workspace-icon" style="background: <%= type.color %>"><svg width="14" height="14" style="color:#fff"><use href="#icon-<%= type.icon %>"/></svg></span>
         <div class="workspace-info">
           <span class="workspace-name"><%= ws.name %></span>
           <span class="workspace-meta">
             <span class="workspace-type-badge" style="background: <%= type.color %>15; color: <%= type.color %>"><%= type.label %></span>
-            <span class="workspace-role" style="color: var(--text-muted)"><%= roleLabels[role] || role %></span>
+            <span class="workspace-role" style="color: var(--text-3)"><%= roleLabels[role] || role %></span>
           </span>
         </div>
         <% if (isActive) { %>
@@ -56,7 +58,7 @@
 
     <% if (workspaces.length === 0) { %>
       <div class="workspace-empty">
-        <span class="workspace-empty-icon">📁</span>
+        <span class="workspace-empty-icon"><svg width="16" height="16"><use href="#icon-folder"/></svg></span>
         <span>No workspaces</span>
         <% if (isOwner) { %>
           <a href="/workspaces/create" class="btn btn-sm btn-primary">Create First Workspace</a>
@@ -69,7 +71,7 @@
     <div class="workspace-current-summary">
       <div class="workspace-current-info">
         <span class="workspace-current-icon" style="background: <%= (workspaceTypes[currentWorkspace.type] || { color: '#6b7280' }).color %>">
-          <%= (workspaceTypes[currentWorkspace.type] || { icon: '📁' }).icon %>
+          <svg width="14" height="14" style="color:#fff"><use href="#icon-<%= (workspaceTypes[currentWorkspace.type] || { icon: 'folder' }).icon %>"/></svg>
         </span>
         <span class="workspace-current-name"><%= currentWorkspace.name %></span>
       </div>
@@ -164,9 +166,9 @@ document.addEventListener('click', function(e) {
 <style>
 /* Workspace Switcher Styles */
 .workspace-switcher {
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border);
   padding: 12px 16px 8px;
-  background: var(--sidebar-bg);
+  background: var(--glass);
 }
 
 .workspace-switcher-header {
@@ -181,7 +183,7 @@ document.addEventListener('click', function(e) {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-muted);
+  color: var(--text-3);
 }
 
 .workspace-list {
@@ -207,13 +209,13 @@ document.addEventListener('click', function(e) {
 }
 
 .workspace-item:hover:not(.switching) {
-  background: var(--hover-bg);
-  border-color: var(--border-color);
+  background: var(--surface-2);
+  border-color: var(--border);
 }
 
 .workspace-item.active {
-  background: var(--primary-bg);
-  border-color: var(--primary-border);
+  background: var(--primary-soft);
+  border-color: var(--primary);
 }
 
 .workspace-item.switching {
@@ -243,7 +245,7 @@ document.addEventListener('click', function(e) {
 .workspace-name {
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -284,7 +286,7 @@ document.addEventListener('click', function(e) {
   justify-content: center;
   padding: 24px 16px;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--text-3);
   gap: 12px;
 }
 
@@ -296,7 +298,7 @@ document.addEventListener('click', function(e) {
 .workspace-current-summary {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border);
 }
 
 .workspace-current-info {
@@ -319,7 +321,7 @@ document.addEventListener('click', function(e) {
 .workspace-current-name {
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .workspace-current-stats {
@@ -334,9 +336,9 @@ document.addEventListener('click', function(e) {
   align-items: center;
   gap: 4px;
   font-size: 0.65rem;
-  color: var(--text-muted);
+  color: var(--text-3);
   padding: 2px 8px;
-  background: var(--hover-bg);
+  background: var(--surface-2);
   border-radius: 4px;
 }
 
@@ -370,12 +372,12 @@ document.addEventListener('click', function(e) {
   margin-left: 8px;
   padding: 4px 8px;
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border);
   border-radius: 4px;
   font-size: 0.7rem;
   white-space: nowrap;
   box-shadow: var(--shadow-lg);
   z-index: 100;
-  color: var(--text-primary);
+  color: var(--text);
 }
 </style>

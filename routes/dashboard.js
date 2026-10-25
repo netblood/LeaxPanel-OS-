@@ -109,21 +109,21 @@ router.get('/', async (req, res) => {
 
       // Card type → icon + color mapping
       const cardMeta = {
-        apps: { icon: '📦', color: '#3b82f6', description: 'Deploy and manage your applications' },
-        websites: { icon: '🌐', color: '#06b6d4', description: 'Host websites and web applications' },
-        databases: { icon: '🗄️', color: '#10b981', description: 'Managed databases for your projects' },
-        storage: { icon: '📁', color: '#84cc16', description: 'Object storage and file management' },
-        bots: { icon: '🤖', color: '#f59e0b', description: 'Telegram, Discord, and WhatsApp bots' },
-        ai: { icon: '🧠', color: '#ec4899', description: 'AI agents and model hosting' },
-        email: { icon: '📧', color: '#0ea5e9', description: 'Email accounts and mail services' },
-        domains: { icon: '🔗', color: '#6366f1', description: 'Domain management and DNS' },
-        backups: { icon: '💾', color: '#ef4444', description: 'Automated backups and restores' },
-        workflows: { icon: '⚙️', color: '#8b5cf6', description: 'n8n workflows and automations' }
+        apps: { icon: 'package', color: '#3b82f6', description: 'Deploy and manage your applications' },
+        websites: { icon: 'globe', color: '#06b6d4', description: 'Host websites and web applications' },
+        databases: { icon: 'database', color: '#10b981', description: 'Managed databases for your projects' },
+        storage: { icon: 'folder', color: '#84cc16', description: 'Object storage and file management' },
+        bots: { icon: 'bot', color: '#f59e0b', description: 'Telegram, Discord, and WhatsApp bots' },
+        ai: { icon: 'brain', color: '#ec4899', description: 'AI agents and model hosting' },
+        email: { icon: 'mail', color: '#0ea5e9', description: 'Email accounts and mail services' },
+        domains: { icon: 'link', color: '#6366f1', description: 'Domain management and DNS' },
+        backups: { icon: 'archive-restore', color: '#ef4444', description: 'Automated backups and restores' },
+        workflows: { icon: 'workflow', color: '#8b5cf6', description: 'n8n workflows and automations' }
       };
 
       // Transform service cards to match view fields
-      const serviceCards = dashboardData.cards.map(card => {
-        const meta = cardMeta[card.type] || { icon: '📦', color: '#6b7280', description: '' };
+      const serviceCards = dashboardData.cards.filter(card => cardMeta[card.type]).map(card => {
+        const meta = cardMeta[card.type] || { icon: 'package', color: '#6b7280', description: '' };
         return {
           serviceType: card.type,
           label: card.title || card.type,
@@ -176,6 +176,8 @@ router.get('/', async (req, res) => {
         };
       });
 
+      const securityCard = dashboardData.cards.find(card => card.type === 'security');
+
       return res.render('workspaces/dashboard', {
         layout: false,
         title: 'Dashboard',
@@ -185,6 +187,7 @@ router.get('/', async (req, res) => {
           summary,
           serviceCards,
           resourceUsage: dashboardData.resources,
+          security: securityCard ? securityCard.data : null,
           recentActivity,
           quickActions
         },

@@ -37,7 +37,7 @@ router.post('/login', requireGuest, authLimiter, loginSchema, handleValidationEr
       return res.redirect('/login');
     }
 
-    if (row.totp_secret) {
+    if (row.two_factor_secret) {
       req.session.pending2fa = { userId: row.id };
       return res.redirect('/2fa/verify');
     }
@@ -120,11 +120,11 @@ router.get('/logout', (req, res) => res.redirect('/dashboard'));
 /* -------------------------------------------------------------------- 2FA */
 router.get('/2fa/setup', requireAuth, (req, res) => {
   try {
-    const row = db.get('SELECT totp_secret FROM users WHERE id = ?', [req.session.user.id]);
-    if (row && row.totp_secret) return res.redirect('/profile');
+    const row = db.get('SELECT two_factor_secret FROM users WHERE id = ?', [req.session.user.id]);
+    if (row && row.two_factor_secret) return res.redirect('/profile');
 
     const secret = speakeasy.generateSecret({ name: `LeaxPanel (${req.session.user.email})` });
-    db.run('UPDATE users SET totp_secret = ? WHERE id = ?', [secret.base32, req.session.user.id]);
+    db.run('UPDATE users SET two_factor_secret = ? WHERE id = ?', [secret.base32, req.session.user.id]);
 
     const otpUrl = speakeasy.otpauthURL({
       secret: secret.base32,
@@ -153,13 +153,13 @@ router.post('/2fa/verify', requireGuest, authLimiter, async (req, res) => {
     if (!userId) return res.redirect('/login');
 
     const row = db.get('SELECT * FROM users WHERE id = ?', [userId]);
-    if (!row || !row.totp_secret) {
+    if (!row || !row.two_factor_secret) {
       req.flash('error', 'Two-factor authentication is not configured for this account.');
       return res.redirect('/login');
     }
 
     const token = String(req.body.token || '').replace(/\s+/g, '');
-    const verified = speakeasy.totp.verify({ secret: row.totp_secret, encoding: 'base32', token });
+    const verified = speakeasy.totp.verify({ secret: row.two_factor_secret, encoding: 'base32', token });
 
     if (!verified) {
       req.flash('error', 'Invalid verification code.');

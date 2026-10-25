@@ -21,7 +21,7 @@
 
 <% if (typeof success !== 'undefined' && success && success.length) { %>
   <% success.forEach(function(msg) { %>
-    <div class="alert alert-success"><span class="alert-icon">✓</span><div><%= msg %></div></div>
+    <div class="alert alert-success"><span class="alert-icon"><svg width="16" height="16" style="color:#22c55e"><use href="#icon-check-circle"/></svg></span><div><%= msg %></div></div>
   <% }); %>
 <% } %>
 <% if (typeof error !== 'undefined' && error && error.length) { %>
@@ -64,7 +64,7 @@
 <% if (!cloudflareConfigured) { %>
   <div class="card" style="margin-bottom:var(--sp-4);">
     <div class="card-body text-center py-5">
-      <div class="empty-icon" style="font-size:3rem;">☁</div>
+      <div class="empty-icon" style="font-size:3rem;"><svg width="48" height="48" style="color:#94a3b8"><use href="#icon-cloud"/></svg></div>
       <h3>Cloudflare Not Connected</h3>
       <p class="text-muted">Connect Cloudflare to enable automatic DNS provisioning and SSL for your services.</p>
       <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#configureModal">
@@ -86,7 +86,7 @@
         </div>
         <div class="d-flex align-items-center gap-3">
           <span class="badge badge-<%= cloudflareValidated ? 'success' : 'danger' %>">
-            <%= cloudflareValidated ? '✓ Connected & Validated' : '✗ Connection Failed' %>
+            <%= cloudflareValidated ? '<svg width="16" height="16" style="color:#22c55e;vertical-align:middle"><use href="#icon-check-circle"/></svg> Connected & Validated' : '<svg width="16" height="16" style="color:#ef4444;vertical-align:middle"><use href="#icon-x-circle"/></svg> Connection Failed' %>
           </span>
           <a href="/cloudflare/nginx-config" class="btn btn-secondary btn-sm">Export Nginx Config</a>
         </div>

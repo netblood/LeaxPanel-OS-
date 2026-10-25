@@ -265,7 +265,6 @@ router.post('/security', handleValidationErrors, async (req, res) => {
 router.post('/services', async (req, res) => {
   try {
     panelSettings.set('registration_enabled', req.body.registration_enabled === 'on' ? 'true' : 'false');
-    panelSettings.set('billing_enabled', req.body.billing_enabled === 'on' ? 'true' : 'false');
     await updateSetupWizardState({ step: 'finish', completed: 0 });
     req.flash('success', 'Service preferences saved.');
   } catch (err) {

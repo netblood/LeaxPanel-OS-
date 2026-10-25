@@ -8,15 +8,18 @@
   <div class="app-content app-content-public">
     <div style="max-width:900px;margin:0 auto;padding:var(--sp-8) var(--sp-5);">
       <div class="page-header">
-        <div>
-          <h1 class="page-title">Setup wizard</h1>
-          <p class="page-subtitle">One click and LeaxPanel is ready to host anything</p>
+        <div style="display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-4);">
+          <img src="/images/logo.png" alt="LeaxPanel" class="setup-logo" width="32" height="32">
+          <div>
+            <h1 class="page-title">Setup wizard</h1>
+            <p class="page-subtitle">One click and LeaxPanel is ready to host anything</p>
+          </div>
         </div>
       </div>
 
       <% if (typeof success !== 'undefined' && success && success.length) { %>
         <% success.forEach(function(msg) { %>
-          <div class="alert alert-success"><span class="alert-icon">✓</span><div><%= msg %></div></div>
+          <div class="alert alert-success"><span class="alert-icon"><svg width="16" height="16" style="color:#22c55e"><use href="#icon-check-circle"/></svg></span><div><%= msg %></div></div>
         <% }); %>
       <% } %>
       <% if (typeof error !== 'undefined' && error && error.length) { %>
@@ -175,7 +178,7 @@
                         <label class="form-label">Connected Zone</label>
                         <div class="form-control-plaintext">
                           <span class="badge badge-success"><%= panelSettings.cloudflare_zone_name || 'Unknown' %></span>
-                          <span class="ms-2"><%= cloudflareValidated ? '<span class="text-success">✓ Validated</span>' : '<span class="text-danger">✗ Validation failed</span>' %></span>
+                          <span class="ms-2"><%= cloudflareValidated ? '<svg width="16" height="16" style="color:#22c55e;vertical-align:middle"><use href="#icon-check-circle"/></svg> Validated' : '<svg width="16" height="16" style="color:#ef4444;vertical-align:middle"><use href="#icon-x-circle"/></svg> Validation failed</span>' %></span>
                         </div>
                       </div>
                       <% } %>
@@ -345,12 +348,6 @@
                       <span><strong>Allow public registration</strong><span class="form-hint">Visitors can create accounts themselves.</span></span>
                     </label>
                   </div>
-                  <div class="form-group">
-                    <label class="form-check">
-                      <input type="checkbox" id="billing_enabled" name="billing_enabled" <%= panelSettings.billing_enabled === 'true' ? 'checked' : '' %>>
-                      <span><strong>Enable billing</strong><span class="form-hint">Disabled by default. Only the service request system is used.</span></span>
-                    </label>
-                  </div>
                   <button type="submit" class="btn btn-primary">Save preferences</button>
                 </form>
               </div>
@@ -366,7 +363,7 @@
               </div>
               <div class="card-body">
                 <% if (setupComplete) { %>
-                  <div class="alert alert-success"><span class="alert-icon">✓</span><div>Setup is already complete.</div></div>
+                  <div class="alert alert-success"><span class="alert-icon"><svg width="16" height="16" style="color:#22c55e"><use href="#icon-check-circle"/></svg></span><div>Setup is already complete.</div></div>
                 <% } %>
                 <form action="/setup/finish" method="POST" data-confirm="Finalise setup and mark it as complete?">
                   <input type="hidden" name="_csrf" value="<%= csrfToken %>">

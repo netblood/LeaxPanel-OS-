@@ -316,7 +316,6 @@ const ROLE_LEVELS = {
   'manager': 70,
   'developer': 60,
   'support': 50,
-  'billing': 40,
   'user': 30,
   'viewer': 10
 };

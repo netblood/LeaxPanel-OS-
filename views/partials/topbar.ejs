@@ -8,6 +8,11 @@
       </svg>
     </button>
 
+    <a href="/dashboard" class="topbar-brand">
+      <img src="/images/logo.png" alt="<%= (typeof panelSettings !== 'undefined' && panelSettings ? panelSettings.panel_name : 'LeaxPanel') %>" class="topbar-brand-logo">
+      <span class="topbar-brand-name"><strong><%= (typeof panelSettings !== 'undefined' && panelSettings ? panelSettings.panel_name : 'LeaxPanel') %></strong></span>
+    </a>
+
     <div class="breadcrumb">
       <a href="/dashboard">Home</a>
       <span class="breadcrumb-sep">/</span>
@@ -44,24 +49,28 @@
         </div>
         <div class="dropdown-body quick-create-grid" id="quickCreateGrid" role="listbox">
           <% const quickActions = [
-            { label: 'Create Website', href: '/website/create', icon: '🌐', desc: 'Deploy a new website' },
-            { label: 'Create WordPress', href: '/apps/create?type=wordpress', icon: '📝', desc: 'Deploy WordPress site' },
-            { label: 'Create WooCommerce', href: '/apps/create?type=woocommerce', icon: '🛒', desc: 'Deploy WooCommerce store' },
-            { label: 'Create NodeJS App', href: '/apps/create?type=nodejs', icon: '📦', desc: 'Deploy Node.js application' },
-            { label: 'Create PHP App', href: '/apps/create?type=php', icon: '🐘', desc: 'Deploy PHP application' },
-            { label: 'Create Telegram Bot', href: '/telegram/create', icon: '✈️', desc: 'Deploy Telegram bot' },
-            { label: 'Create Discord Bot', href: '/discord/create', icon: '🎮', desc: 'Deploy Discord bot' },
-            { label: 'Create WhatsApp Instance', href: '/whatsapp/create', icon: '📱', desc: 'Connect WhatsApp' },
-            { label: 'Create AI Agent', href: '/ai/create', icon: '🤖', desc: 'Deploy AI agent' },
-            { label: 'Create n8n Workflow', href: '/n8n/create', icon: '🔄', desc: 'Create automation workflow' },
-            { label: 'Create Database', href: '/databases/create', icon: '🗄️', desc: 'Create new database' },
-            { label: 'Create Domain', href: '/domains/create', icon: '🌍', desc: 'Add new domain' },
-            { label: 'Create Email', href: '/email/create', icon: '📧', desc: 'Create email account' },
-            { label: 'Create Backup', href: '/backups/create', icon: '💾', desc: 'Create new backup' }
+            { label: 'Create Website', href: '/website/create', icon: 'globe', desc: 'Deploy a new website' },
+            { label: 'Create WordPress', href: '/apps/create?type=wordpress', icon: 'file-text', desc: 'Deploy WordPress site' },
+            { label: 'Create WooCommerce', href: '/apps/create?type=woocommerce', icon: 'shopping-cart', desc: 'Deploy WooCommerce store' },
+            { label: 'Create NodeJS App', href: '/apps/create?type=nodejs', icon: 'package', desc: 'Deploy Node.js application' },
+            { label: 'Create PHP App', href: '/apps/create?type=php', icon: 'file', desc: 'Deploy PHP application' },
+            { label: 'Create Telegram Bot', href: '/telegram/create', icon: 'send', desc: 'Deploy Telegram bot' },
+            { label: 'Create Discord Bot', href: '/discord/create', icon: 'message-circle', desc: 'Deploy Discord bot' },
+            { label: 'Create WhatsApp Instance', href: '/whatsapp/create', icon: 'phone', desc: 'Connect WhatsApp' },
+            { label: 'Create AI Agent', href: '/ai/create', icon: 'brain', desc: 'Deploy AI agent' },
+            { label: 'Create n8n Workflow', href: '/n8n/create', icon: 'workflow', desc: 'Create automation workflow' },
+            { label: 'Create Database', href: '/databases/create', icon: 'database', desc: 'Create new database' },
+            { label: 'Create Domain', href: '/domains/create', icon: 'globe-2', desc: 'Add new domain' },
+            { label: 'Create Email', href: '/email/create', icon: 'mail', desc: 'Create email account' },
+            { label: 'Create Backup', href: '/backups/create', icon: 'archive-restore', desc: 'Create new backup' }
           ]; %>
           <% quickActions.forEach(function(action) { %>
             <a href="<%= action.href %>" class="quick-create-item" role="option" title="<%= action.desc %>">
-              <span class="quick-create-item-icon"><%= action.icon %></span>
+              <span class="quick-create-item-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <use href="#icon-<%= action.icon %>"></use>
+                </svg>
+              </span>
               <span class="quick-create-item-label"><%= action.label %></span>
             </a>
           <% }); %>

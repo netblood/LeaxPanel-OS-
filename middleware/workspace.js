@@ -85,11 +85,11 @@ async function workspaceContext(req, res, next) {
     res.locals.workspaceMember = req.workspaceMember || null;
     res.locals.workspacePermissions = req.workspacePermissions || [];
     res.locals.workspaceTypes = {
-      personal: { icon: '👤', label: 'Personal', color: '#8b5cf6' },
-      clients: { icon: '🏢', label: 'Clients', color: '#06b6d4' },
-      company: { icon: '🏭', label: 'Company', color: '#10b981' },
-      development: { icon: '💻', label: 'Development', color: '#f59e0b' },
-      production: { icon: '🚀', label: 'Production', color: '#ef4444' }
+      personal: { icon: 'user', label: 'Personal', color: '#8b5cf6' },
+      clients: { icon: 'users', label: 'Clients', color: '#06b6d4' },
+      company: { icon: 'briefcase', label: 'Company', color: '#10b981' },
+      development: { icon: 'code-2', label: 'Development', color: '#f59e0b' },
+      production: { icon: 'server', label: 'Production', color: '#ef4444' }
     };
 
     next();

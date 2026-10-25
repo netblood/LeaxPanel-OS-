@@ -35,7 +35,6 @@ class DomainManager {
       'marketplace': 'market',
       'platform': 'platform',
       'white-label': 'brand',
-      'billing': 'billing',
       'requests': 'requests',
       'monitoring': 'monitor',
       'backups': 'backup',

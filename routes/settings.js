@@ -16,8 +16,6 @@ const EDITABLE = [
   'default_locale',
   'footer_text',
   'registration_enabled',
-  'billing_enabled',
-  'billing_provider',
   'maintenance_mode',
   'maintenance_message'
 ];
@@ -26,7 +24,7 @@ router.get('/', (req, res) => {
   res.render('settings/index', {
     title: 'Settings',
     pageTitle: 'Settings',
-    pageSubtitle: 'Panel branding, registration, billing and maintenance',
+    pageSubtitle: 'Panel branding, registration and maintenance',
     settings: panelSettings.all(),
     editable: EDITABLE
   });

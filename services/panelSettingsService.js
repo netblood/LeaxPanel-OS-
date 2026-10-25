@@ -15,8 +15,6 @@ const DEFAULTS = {
   default_timezone: 'UTC',
   default_locale: 'en',
   registration_enabled: 'false',
-  billing_enabled: 'false',
-  billing_provider: 'manual',
   maintenance_mode: 'false',
   maintenance_message: 'LeaxPanel is under maintenance. Please check back shortly.',
   setup_completed: 'false',
@@ -135,10 +133,6 @@ function isRegistrationEnabled() {
   return getBool('registration_enabled');
 }
 
-function isBillingEnabled() {
-  return getBool('billing_enabled');
-}
-
 function isMaintenanceMode() {
   return getBool('maintenance_mode');
 }
@@ -154,6 +148,5 @@ module.exports = {
   invalidate,
   isSetupComplete,
   isRegistrationEnabled,
-  isBillingEnabled,
   isMaintenanceMode
 };

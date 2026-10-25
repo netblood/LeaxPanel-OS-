@@ -181,9 +181,9 @@ client.on(Events.InteractionCreate, async interaction => {
   const { commandName } = interaction;
   
   if (commandName === 'ping') {
-    await interaction.reply('Pong! 🏓');
+    await interaction.reply('Pong!');
   } else if (commandName === 'hello') {
-    await interaction.reply(\`Hello, \${interaction.user}! 👋\`);
+    await interaction.reply(\`Hello, \${interaction.user}! \`);
   } else if (commandName === 'server') {
     await interaction.reply(\`Server: \${interaction.guild.name} (\${interaction.guild.memberCount} members)\`);
   } else if (commandName === 'user') {
@@ -193,7 +193,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
 client.on(Events.MessageCreate, message => {
   if (message.author.bot) return;
-  if (message.content === '!ping') message.reply('Pong! 🏓');
+  if (message.content === '!ping') message.reply('Pong!');
 });
 
 client.login(process.env.DISCORD_BOT_TOKEN).catch(console.error);`,
@@ -220,18 +220,18 @@ bot.use((ctx, next) => {
 });
 
 // Commands
-bot.start((ctx) => ctx.reply('Welcome to LeaxPanel Bot! 🚀\nUse /help to see commands.'));
+bot.start((ctx) => ctx.reply('Welcome to LeaxPanel Bot!\nUse /help to see commands.'));
 bot.help((ctx) => ctx.reply('Commands:\n/start - Start bot\n/help - This message\n/ping - Pong\n/hello - Greeting'));
 
-bot.command('ping', (ctx) => ctx.reply('Pong! 🏓'));
-bot.command('hello', (ctx) => ctx.reply(\`Hello, \${ctx.from.first_name}! 👋\`));
+bot.command('ping', (ctx) => ctx.reply('Pong!'));
+bot.command('hello', (ctx) => ctx.reply(\`Hello, \${ctx.from.first_name}! \`));
 
 // Inline keyboard
 bot.command('menu', (ctx) => {
   ctx.reply('Choose an option:', Markup.inlineKeyboard([
-    Markup.button.callback('📊 Status', 'status'),
-    Markup.button.callback('ℹ️ Info', 'info'),
-    Markup.button.url('🌐 LeaxPanel', 'https://leaxpanel.com')
+    Markup.button.callback('Status', 'status'),
+    Markup.button.callback('Info', 'info'),
+    Markup.button.url('LeaxPanel', 'https://leaxpanel.com')
   ]));
 });
 
@@ -296,9 +296,9 @@ async function connect() {
       const jid = msg.key.remoteJid;
       
       if (text === '!ping') {
-        await sock.sendMessage(jid, { text: 'Pong! 🏓' });
+        await sock.sendMessage(jid, { text: 'Pong!' });
       } else if (text === '!hello') {
-        await sock.sendMessage(jid, { text: 'Hello! 👋 This is LeaxPanel WhatsApp Bot' });
+        await sock.sendMessage(jid, { text: 'Hello! This is LeaxPanel WhatsApp Bot' });
       } else if (text.startsWith('!echo ')) {
         await sock.sendMessage(jid, { text: text.slice(6) });
       }

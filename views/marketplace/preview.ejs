@@ -78,7 +78,7 @@
           <div class="d-flex align-items-center gap-2">
             <div class="rating-stars">
               <% for (let i = 1; i <= 5; i++) { %>
-                <span class="<%= i <= Math.round(template.rating) ? 'text-warning' : 'text-muted' %>">★</span>
+                <svg width="14" height="14" class="<%= i <= Math.round(template.rating) ? 'text-warning' : 'text-muted' %>" style="vertical-align:middle"><use href="#icon-star"/></svg>
               <% } %>
             </div>
             <span class="fw-bold"><%= template.rating.toFixed(1) %></span>
@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
           <div class="rating-stars small mb-1">
             <% for (let i = 1; i <= 5; i++) { %>
-              <span class="<%= i <= r.rating ? 'text-warning' : 'text-muted' %>">★</span>
+              <svg width="14" height="14" class="<%= i <= r.rating ? 'text-warning' : 'text-muted' %>" style="vertical-align:middle"><use href="#icon-star"/></svg>
             <% } %>
           </div>
           <% if (r.review) { %>

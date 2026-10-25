@@ -6,7 +6,7 @@
 <% if (successMsgs.length) { %>
   <% successMsgs.forEach(function(msg) { %>
     <div class="alert alert-success" role="status">
-      <span class="alert-icon">✓</span>
+      <span class="alert-icon"><svg width="16" height="16" style="color:#22c55e"><use href="#icon-check-circle"/></svg></span>
       <div><%= msg %></div>
     </div>
   <% }); %>

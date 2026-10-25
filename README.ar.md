@@ -1,4 +1,4 @@
-# ⚡ LeaxPanel(os)
+# LeaxPanel(os)
 
 **استضف أي شيء. أدر كل شيء. انشر في أي مكان.**
 
@@ -9,7 +9,7 @@
 
 ---
 
-## 📋 الفهرس
+## الفهرس
 
 - [التثبيت بأمر واحد](#التثبيت-بأمر-واحد)
 - [التشغيل السريع](#التشغيل-السريع)
@@ -27,7 +27,7 @@
 
 ---
 
-## 🚀 التثبيت بأمر واحد
+## التثبيت بأمر واحد
 
 المثبِّت يتكفَّل بكلِّ شيء: فحص Node.js، توليد الأسرار، تثبيت الحزم، الترحيلات، البذور، إنشاء المسؤول والتحقق.
 
@@ -38,14 +38,14 @@ curl -fsSL https://raw.githubusercontent.com/netblood/LeaxPanel-OS-/main/install
 ```
 
 التثبيت التلقائي يقوم بما يلي:
-- ✅ التحقق من تشغيل Node.js 22+
-- ✅ تثبيت dependencies (npm install)
-- ✅ تطبيق migrations قاعدة البيانات
-- ✅ seeding المسؤول والإدارات
-- ✅ ضبط firewall منافذ TCP 3000
-- ✅ توليد شهادات SSL
-- ✅ إنشاء مستخدم المشرف بكلمة مرور مولّدة تلقائياً
-- ✅ تشغيل panel
+- [OK] التحقق من تشغيل Node.js 22+
+- [OK] تثبيت dependencies (npm install)
+- [OK] تطبيق migrations قاعدة البيانات
+- [OK] seeding المسؤول والإدارات
+- [OK] ضبط firewall منافذ TCP 3000
+- [OK] توليد شهادات SSL
+- [OK] إنشاء مستخدم المشرف بكلمة مرور مولّدة تلقائياً
+- [OK] تشغيل panel
 
 ### Windows (PowerShell)
 
@@ -59,7 +59,7 @@ iwr -useb https://raw.githubusercontent.com/netblood/LeaxPanel-OS-/main/install.
 
 ---
 
-## ⚡ التشغيل السريع
+## التشغيل السريع
 
 1. شغل المثبِّت (`install.bat`، `install.sh` أو الأمر أعلاه).
 2. شغل panel: `run.bat`، `./run.sh` أو `npm start`.
@@ -69,7 +69,7 @@ iwr -useb https://raw.githubusercontent.com/netblood/LeaxPanel-OS-/main/install.
 
 ---
 
-## 📦 التثبيت اليدوي
+## التثبيت اليدوي
 
 ```bash
 git clone https://github.com/netblood/LeaxPanel-OS-.git
@@ -86,7 +86,7 @@ npm start                   # http://localhost:3000
 
 ---
 
-## 🔑 بيانات الدخول الافتراضية
+## بيانات الدخول الافتراضية
 
 | الحقل | القيمة |
 | --- | --- |
@@ -97,7 +97,7 @@ npm start                   # http://localhost:3000
 
 ---
 
-## 🎯 جولة المميزات
+## جولة المميزات
 
 ### لوحة التحكم
 
@@ -195,7 +195,7 @@ npm start                   # http://localhost:3000
 
 ---
 
-## 📋 إدارة الوحدات
+## إدارة الوحدات
 
 يجب أن يكون كل موقع/تطبيق/بوت قابل للإدارة من خلال الواجهة مع:
 
@@ -272,7 +272,7 @@ run.bat
 
 ---
 
-## ⚡ التشغيل السريع
+## التشغيل السريع
 
 1. شغّل المثبّت (`install.bat` أو `install.sh` أو الأمر المباشر أعلاه).
 2. شغّل اللوحة: `run.bat` أو `./run.sh` أو `npm start`.
@@ -282,7 +282,7 @@ run.bat
 
 ---
 
-## 📦 التثبيت اليدوي
+## التثبيت اليدوي
 
 ```bash
 git clone https://github.com/netblood/LeaxPanel-OS-.git
@@ -299,7 +299,7 @@ npm start                   # http://localhost:3000
 
 ---
 
-## 🔑 بيانات الدخول الافتراضية
+## بيانات الدخول الافتراضية
 
 | الحقل | القيمة |
 | --- | --- |
@@ -311,7 +311,7 @@ npm start                   # http://localhost:3000
 
 ---
 
-## ✨ نظرة على الميزات
+## نظرة على الميزات
 
 ### نظرة عامة
 - **لوحة التحكم** — المعالج والذاكرة والقرص والشبكة، عدّادات مباشرة، رسوم بيانية، آخر السجلات والنسخ الاحتياطية والنشاط، صحة الخادم، درجة الأمان وإجراءات سريعة.
@@ -361,7 +361,7 @@ npm start                   # http://localhost:3000
 
 ---
 
-## 🛠 البنية التقنية
+## البنية التقنية
 
 | الطبقة | الاختيار |
 | --- | --- |
@@ -379,7 +379,7 @@ npm start                   # http://localhost:3000
 
 ---
 
-## 🧰 الأوامر
+## الأوامر
 
 | الأمر | الوصف |
 | --- | --- |
@@ -397,7 +397,7 @@ npm start                   # http://localhost:3000
 
 ---
 
-## 🔌 واجهة REST API
+## واجهة REST API
 
 كل الموارد متاحة بصيغة JSON تحت `/api`، مع مصادقة عبر مفتاح API في ترويسة `X-API-Key`.
 
@@ -413,7 +413,7 @@ curl -H "X-API-Key: lx_..." "http://localhost:3000/api/apps?limit=10"
 
 ---
 
-## 🛡 الأدوار والصلاحيات
+## الأدوار والصلاحيات
 
 | الدور | المستوى | الغرض |
 | --- | --- | --- |
@@ -432,7 +432,7 @@ curl -H "X-API-Key: lx_..." "http://localhost:3000/api/apps?limit=10"
 
 ---
 
-## 🩺 LeaxPanel Doctor
+## LeaxPanel Doctor
 
 افتح **http://localhost:3000/doctor** أو شغّل `npm run doctor`.
 
@@ -444,7 +444,7 @@ curl -H "X-API-Key: lx_..." "http://localhost:3000/api/apps?limit=10"
 
 ---
 
-## 🛠 حل المشكلات
+## حل المشكلات
 
 | المشكلة | الحل |
 | --- | --- |
@@ -457,7 +457,7 @@ curl -H "X-API-Key: lx_..." "http://localhost:3000/api/apps?limit=10"
 
 ---
 
-## 📚 الروابط
+## الروابط
 
 | المورد | الرابط |
 | --- | --- |
@@ -472,7 +472,7 @@ curl -H "X-API-Key: lx_..." "http://localhost:3000/api/apps?limit=10"
 
 ---
 
-## 📄 الترخيص
+## الترخيص
 
 **رخصة MIT**.
 

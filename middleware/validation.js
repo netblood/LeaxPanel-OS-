@@ -1,7 +1,7 @@
 // Request validation helpers built on express-validator.
 const { body, param, query, validationResult } = require('express-validator');
 
-const ROLES = ['owner', 'admin', 'reseller', 'manager', 'developer', 'support', 'billing', 'user', 'viewer'];
+const ROLES = ['owner', 'admin', 'reseller', 'manager', 'developer', 'support', 'user', 'viewer'];
 
 function isApi(req) {
   return req.path.startsWith('/api/') || (req.originalUrl || '').startsWith('/api/');

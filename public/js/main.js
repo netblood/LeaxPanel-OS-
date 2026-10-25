@@ -25,6 +25,10 @@
       .replace(/'/g, '&#039;');
   }
 
+  function svgIcon(name) {
+    return '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-' + escapeHtml(name) + '"></use></svg>';
+  }
+
   function debounce(fn, wait) {
     let timer;
     return function () {
@@ -174,7 +178,6 @@
     { label: 'Communication', href: '/communication', type: 'Page' },
     { label: 'Cloudflare', href: '/cloudflare', type: 'Page' },
     { label: 'Service Requests', href: '/requests', type: 'Page' },
-    { label: 'Billing', href: '/billing', type: 'Page' },
     { label: 'Marketplace', href: '/marketplace', type: 'Page' },
     { label: 'Users', href: '/users', type: 'Page' },
     { label: 'Services', href: '/services', type: 'Page' },
@@ -269,21 +272,21 @@
 
   /* ---------------------------------------------------------- quick create */
   const QUICK_CREATE = [
-    { label: 'Website', desc: 'Deploy a static or dynamic site', href: '/website/create', icon: '🌐' },
-    { label: 'Application', desc: 'NodeJS, PHP or Docker app', href: '/apps/create', icon: '📦' },
-    { label: 'AI Agent', desc: 'DevOps, support or custom agent', href: '/ai/create', icon: '🤖' },
-    { label: 'Database', desc: 'PostgreSQL, MySQL, MongoDB', href: '/databases/create', icon: '🗄️' },
-    { label: 'Workflow', desc: 'N8N automation workflow', href: '/n8n/create', icon: '🔄' },
-    { label: 'Domain', desc: 'Add a domain and manage DNS', href: '/domains/create', icon: '🌍' },
-    { label: 'Bot', desc: 'Telegram, Discord or WhatsApp', href: '/bots/create', icon: '🎮' },
-    { label: 'Backup', desc: 'Snapshot your resources', href: '/backups/create', icon: '💾' },
-    { label: 'User', desc: 'Invite a new panel user', href: '/users/create', icon: '👤' },
-    { label: 'Service', desc: 'Register a managed service', href: '/services/create', icon: '⚙️' },
-    { label: 'Discord Bot', desc: 'Deploy a Discord bot', href: '/discord/create', icon: '🎮' },
-    { label: 'Telegram Bot', desc: 'Deploy a Telegram bot', href: '/telegram/create', icon: '✈️' },
-    { label: 'WhatsApp', desc: 'Connect a WhatsApp instance', href: '/whatsapp/create', icon: '📱' },
-    { label: 'Email Account', desc: 'Add a mailbox or alias', href: '/email/create', icon: '📧' },
-    { label: 'Domain', desc: 'Add a domain and manage DNS', href: '/domains/create', icon: '🌍' }
+    { label: 'Website', desc: 'Deploy a static or dynamic site', href: '/website/create', icon: 'globe' },
+    { label: 'Application', desc: 'NodeJS, PHP or Docker app', href: '/apps/create', icon: 'package' },
+    { label: 'AI Agent', desc: 'DevOps, support or custom agent', href: '/ai/create', icon: 'bot' },
+    { label: 'Database', desc: 'PostgreSQL, MySQL, MongoDB', href: '/databases/create', icon: 'database' },
+    { label: 'Workflow', desc: 'N8N automation workflow', href: '/n8n/create', icon: 'workflow' },
+    { label: 'Domain', desc: 'Add a domain and manage DNS', href: '/domains/create', icon: 'globe2' },
+    { label: 'Bot', desc: 'Telegram, Discord or WhatsApp', href: '/bots/create', icon: 'gamepad-2' },
+    { label: 'Backup', desc: 'Snapshot your resources', href: '/backups/create', icon: 'hard-drive' },
+    { label: 'User', desc: 'Invite a new panel user', href: '/users/create', icon: 'user' },
+    { label: 'Service', desc: 'Register a managed service', href: '/services/create', icon: 'settings' },
+    { label: 'Discord Bot', desc: 'Deploy a Discord bot', href: '/discord/create', icon: 'gamepad-2' },
+    { label: 'Telegram Bot', desc: 'Deploy a Telegram bot', href: '/telegram/create', icon: 'send' },
+    { label: 'WhatsApp', desc: 'Connect a WhatsApp instance', href: '/whatsapp/create', icon: 'phone' },
+    { label: 'Email Account', desc: 'Add a mailbox or alias', href: '/email/create', icon: 'mail' },
+    { label: 'Domain', desc: 'Add a domain and manage DNS', href: '/domains/create', icon: 'globe2' }
   ];
 
   function buildQuickCreate() {
@@ -312,7 +315,7 @@
     function paint(list) {
       grid.innerHTML = list.map(item =>
         '<a class="feature-card" style="padding:14px;text-decoration:none" href="' + escapeHtml(item.href) + '">' +
-          '<div style="font-size:22px;margin-bottom:6px">' + item.icon + '</div>' +
+          svgIcon(item.icon) +
           '<h3 style="font-size:13.5px;margin-bottom:2px">' + escapeHtml(item.label) + '</h3>' +
           '<p style="font-size:11.5px;margin:0">' + escapeHtml(item.desc) + '</p>' +
         '</a>'
@@ -441,59 +444,63 @@
     if (!overlay || !palette || !input || !sections) return;
 
     const CATEGORIES = [
-      { id: 'pages', label: 'Pages & Navigation', icon: '📄' },
-      { id: 'actions', label: 'Quick Actions', icon: '⚡' },
-      { id: 'create', label: 'Create Resources', icon: '➕' },
-      { id: 'settings', label: 'Settings & Admin', icon: '⚙️' }
+      { id: 'pages', label: 'Pages & Navigation', icon: 'file-text' },
+      { id: 'actions', label: 'Quick Actions', icon: 'zap' },
+      { id: 'create', label: 'Create Resources', icon: 'plus' },
+      { id: 'settings', label: 'Settings & Admin', icon: 'settings' }
     ];
 
     const COMMANDS = [
       // Pages
-      { cat: 'pages', label: 'Dashboard', href: '/dashboard', icon: '🏠' },
-      { cat: 'pages', label: 'Services Dashboard', href: '/services', icon: '⚡' },
-      { cat: 'pages', label: 'File Manager', href: '/file-manager', icon: '📁' },
-      { cat: 'pages', label: 'Terminal Center', href: '/terminal', icon: '💻' },
-      { cat: 'pages', label: 'Marketplace', href: '/marketplace', icon: '🛒' },
-      { cat: 'pages', label: 'Doctor', href: '/doctor', icon: '🩺' },
-      { cat: 'pages', label: 'AI Agents', href: '/ai', icon: '🤖' },
-      { cat: 'pages', label: 'AI Providers', href: '/ai-settings', icon: '🔌' },
-      { cat: 'pages', label: 'API Keys', href: '/apikeys', icon: '🔑' },
-      { cat: 'pages', label: 'Audit Logs', href: '/security/audit', icon: '📋' },
-      { cat: 'pages', label: 'Security Alerts', href: '/security-alerts', icon: '⚠️' },
-      { cat: 'pages', label: 'Login Page', href: '/login-page', icon: '🔐' },
-      { cat: 'pages', label: 'Profile', href: '/profile', icon: '👤' },
-      { cat: 'pages', label: 'Settings', href: '/settings', icon: '⚙️' },
+      { cat: 'pages', label: 'Dashboard', href: '/dashboard', icon: 'home' },
+      { cat: 'pages', label: 'Services Dashboard', href: '/services', icon: 'zap' },
+      { cat: 'pages', label: 'File Manager', href: '/file-manager', icon: 'folder' },
+      { cat: 'pages', label: 'Terminal Center', href: '/terminal', icon: 'terminal-square' },
+      { cat: 'pages', label: 'Marketplace', href: '/marketplace', icon: 'shopping-cart' },
+      { cat: 'pages', label: 'Doctor', href: '/doctor', icon: 'stethoscope' },
+      { cat: 'pages', label: 'AI Agents', href: '/ai', icon: 'bot' },
+      { cat: 'pages', label: 'AI Providers', href: '/ai-settings', icon: 'link' },
+      { cat: 'pages', label: 'API Keys', href: '/apikeys', icon: 'key' },
+      { cat: 'pages', label: 'Audit Logs', href: '/security/audit', icon: 'layout' },
+      { cat: 'pages', label: 'Security Alerts', href: '/security-alerts', icon: 'alert-triangle' },
+      { cat: 'pages', label: 'Login Page', href: '/login-page', icon: 'lock' },
+      { cat: 'pages', label: 'Profile', href: '/profile', icon: 'user' },
+      { cat: 'pages', label: 'Settings', href: '/settings', icon: 'settings' },
 
       // Quick actions
-      { cat: 'actions', label: 'Quick Create', action: 'quickCreate', icon: '⚡' },
-      { cat: 'actions', label: 'Theme Toggle', action: 'toggleTheme', icon: '🎨' },
-      { cat: 'actions', label: 'Notifications', action: 'notifications', icon: '𔔾' },
+      { cat: 'actions', label: 'Quick Create', action: 'quickCreate', icon: 'zap' },
+      { cat: 'actions', label: 'Theme Toggle', action: 'toggleTheme', icon: 'palette' },
+      { cat: 'actions', label: 'Notifications', action: 'notifications', icon: 'bell' },
 
       // Create resources
-      { cat: 'create', label: 'Create Website', href: '/website/create', icon: '🌐' },
-      { cat: 'create', label: 'Create WordPress', href: '/apps/create?type=wordpress', icon: '📝' },
-      { cat: 'create', label: 'Create NodeJS App', href: '/apps/create?type=nodejs', icon: '📦' },
-      { cat: 'create', label: 'Create PHP App', href: '/apps/create?type=php', icon: '🐘' },
-      { cat: 'create', label: 'Create Telegram Bot', href: '/telegram/create', icon: '✈️' },
-      { cat: 'create', label: 'Create Discord Bot', href: '/discord/create', icon: '🎮' },
-      { cat: 'create', label: 'Create WhatsApp Instance', href: '/whatsapp/create', icon: '📱' },
-      { cat: 'create', label: 'Create AI Agent', href: '/ai/create', icon: '🤖' },
-      { cat: 'create', label: 'Create Database', href: '/databases/create', icon: '🗄️' },
-      { cat: 'create', label: 'Create Domain', href: '/domains/create', icon: '🌍' },
-      { cat: 'create', label: 'Create Backup', href: '/backups/create', icon: '💾' },
+      { cat: 'create', label: 'Create Website', href: '/website/create', icon: 'globe' },
+      { cat: 'create', label: 'Create WordPress', href: '/apps/create?type=wordpress', icon: 'file-text' },
+      { cat: 'create', label: 'Create NodeJS App', href: '/apps/create?type=nodejs', icon: 'package' },
+      { cat: 'create', label: 'Create PHP App', href: '/apps/create?type=php', icon: 'package' },
+      { cat: 'create', label: 'Create Telegram Bot', href: '/telegram/create', icon: 'send' },
+      { cat: 'create', label: 'Create Discord Bot', href: '/discord/create', icon: 'gamepad-2' },
+      { cat: 'create', label: 'Create WhatsApp Instance', href: '/whatsapp/create', icon: 'phone' },
+      { cat: 'create', label: 'Create AI Agent', href: '/ai/create', icon: 'bot' },
+      { cat: 'create', label: 'Create Database', href: '/databases/create', icon: 'database' },
+      { cat: 'create', label: 'Create Domain', href: '/domains/create', icon: 'globe2' },
+      { cat: 'create', label: 'Create Backup', href: '/backups/create', icon: 'hard-drive' },
 
       // Settings / admin
-      { cat: 'settings', label: 'AI Hosting', href: '/ai-hosting', icon: '🔌' },
-      { cat: 'settings', label: 'API Usage', href: '/apikeys/usage', icon: '📊' },
-      { cat: 'settings', label: 'API Endpoints', href: '/api-endpoints', icon: '🔌' },
-      { cat: 'settings', label: 'Webhooks', href: '/webhooks', icon: '🔗' },
-      { cat: 'settings', label: 'Terminal Permissions', href: '/terminal-permissions', icon: '🔒' },
-      { cat: 'settings', label: 'Terminal History', href: '/terminal-history', icon: '🕒' },
-      { cat: 'settings', label: 'Login Overrides', href: '/login-overrides', icon: '🔓' },
-      { cat: 'settings', label: 'Users', href: '/users', icon: '👥' },
-      { cat: 'settings', label: 'White Label', href: '/white-label', icon: '🎨' },
-      { cat: 'settings', label: 'Platform', href: '/platform', icon: '🖥️' },
-      { cat: 'settings', label: 'Doctor', href: '/doctor', icon: '🩺' }
+      { cat: 'settings', label: 'AI Hosting', href: '/ai-hosting', icon: 'link' },
+      { cat: 'settings', label: 'API Usage', href: '/apikeys/usage', icon: 'activity' },
+      { cat: 'settings', label: 'API Endpoints', href: '/api-endpoints', icon: 'link' },
+      { cat: 'settings', label: 'Webhooks', href: '/webhooks', icon: 'send' },
+      { cat: 'settings', label: 'Terminal Permissions', href: '/terminal-permissions', icon: 'lock' },
+      { cat: 'settings', label: 'Terminal History', href: '/terminal-history', icon: 'clock' },
+      { cat: 'settings', label: 'API Endpoints', href: '/api-endpoints', icon: 'link' },
+      { cat: 'settings', label: 'Webhooks', href: '/webhooks', icon: 'send' },
+      { cat: 'settings', label: 'Terminal Permissions', href: '/terminal-permissions', icon: 'lock' },
+      { cat: 'settings', label: 'Terminal History', href: '/terminal-history', icon: 'clock' },
+      { cat: 'settings', label: 'Login Overrides', href: '/login-overrides', icon: 'lock-open' },
+      { cat: 'settings', label: 'Users', href: '/users', icon: 'users' },
+      { cat: 'settings', label: 'White Label', href: '/white-label', icon: 'palette' },
+      { cat: 'settings', label: 'Platform', href: '/platform', icon: 'monitor' },
+      { cat: 'settings', label: 'Doctor', href: '/doctor', icon: 'stethoscope' }
     ];
 
     let currentIndex = -1;

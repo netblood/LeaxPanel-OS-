@@ -22,7 +22,7 @@
 <div class="card" style="margin-bottom:var(--sp-4);">
   <div class="card-body">
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <a href="/file-manager" class="btn btn-secondary btn-sm">🏠 Root</a>
+      <a href="/file-manager" class="btn btn-secondary btn-sm"><svg width="16" height="16" style="color:#cbd5e1;vertical-align:middle"><use href="#icon-home"/></svg> Root</a>
       <% breadcrumbs.forEach(function(crumb) { %>
         <span class="text-muted">/</span>
         <a href="/file-manager?path=<%= encodeURIComponent(crumb.path) %>" class="btn btn-ghost btn-sm"><%= crumb.name %></a>
@@ -59,9 +59,9 @@
                 <td><input type="checkbox" data-row-check aria-label="Select row"></td>
                 <td class="cell-primary">
                   <% if (entry.isDir) { %>
-                    <a href="/file-manager?path=<%= encodeURIComponent(entry.path) %>">📁 <%= entry.name %></a>
+                    <a href="/file-manager?path=<%= encodeURIComponent(entry.path) %>"><svg width="16" height="16" style="color:#cbd5e1;vertical-align:middle"><use href="#icon-folder"/></svg> <%= entry.name %></a>
                   <% } else { %>
-                    📄 <%= entry.name %>
+                    <svg width="16" height="16" style="color:#94a3b8;vertical-align:middle"><use href="#icon-file-text"/></svg> <%= entry.name %>
                   <% } %>
                 </td>
                 <td><span class="badge badge-info badge-plain"><%= entry.isDir ? 'Folder' : 'File' %></span></td>
