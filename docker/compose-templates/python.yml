@@ -1,0 +1,38 @@
+services:
+  app:
+    build:
+      context: ${PROJECT_PATH:-.}
+    restart: unless-stopped
+    env_file:
+      - ${ENV_FILE:-.env}
+    mem_limit: ${APP_MEMORY_LIMIT:-512m}
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.${APP_NAME:-python-app}.rule: Host(`${APP_DOMAIN:-api.localhost}`)
+      traefik.http.routers.${APP_NAME:-python-app}.entrypoints: websecure
+      traefik.http.routers.${APP_NAME:-python-app}.tls: "true"
+      traefik.http.routers.${APP_NAME:-python-app}.tls.certresolver: leax
+      traefik.http.services.${APP_NAME:-python-app}.loadbalancer.server.port: "${APP_PORT:-8000}"
+    networks:
+      - leaxpanel
+
+  postgres:
+    image: postgres:16-alpine
+    profiles: [with-postgres]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+    volumes:
+      - ${APP_NAME:-python-app}_postgres:/var/lib/postgresql/data
+    mem_limit: 160m
+    networks:
+      - leaxpanel
+
+volumes:
+  ${APP_NAME:-python-app}_postgres:
+
+networks:
+  leaxpanel:
+    external: true

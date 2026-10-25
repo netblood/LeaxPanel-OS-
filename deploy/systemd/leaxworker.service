@@ -1,0 +1,14 @@
+[Unit]
+Description=LeaxPanel background worker
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/leaxpanel
+EnvironmentFile=/opt/leaxpanel/.env
+ExecStart=/usr/bin/node /opt/leaxpanel/worker/index.mjs
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

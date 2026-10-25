@@ -1,0 +1,94 @@
+name: leaxpanel
+
+services:
+  panel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      APP_URL: ${APP_URL:-http://panel.localhost}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-leaxpanel}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:-leaxpanel}
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.panel.rule: Host(`${APP_DOMAIN:-panel.localhost}`)
+      traefik.http.routers.panel.entrypoints: websecure
+      traefik.http.routers.panel.tls.certresolver: leax
+      traefik.http.services.panel.loadbalancer.server.port: "8787"
+    mem_limit: 384m
+    networks:
+      - leaxpanel
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-leaxpanel}
+      POSTGRES_USER: ${POSTGRES_USER:-leaxpanel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 160m
+    networks:
+      - leaxpanel
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    mem_limit: 96m
+    networks:
+      - leaxpanel
+
+  traefik:
+    image: traefik:v3.1
+    restart: unless-stopped
+    command:
+      - --api.dashboard=false
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.leax.acme.email=${TRAEFIK_EMAIL:?TRAEFIK_EMAIL must be set}
+      - --certificatesresolvers.leax.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.leax.acme.httpchallenge.entrypoint=web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_data:/letsencrypt
+    mem_limit: 128m
+    networks:
+      - leaxpanel
+
+volumes:
+  postgres_data:
+  redis_data:
+  traefik_data:
+
+networks:
+  leaxpanel:
+    name: leaxpanel

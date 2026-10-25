@@ -1,0 +1,29 @@
+services:
+  app:
+    build:
+      context: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    mem_limit: 512m
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.qa-app.rule: Host(`qa.example.local`)
+      traefik.http.routers.qa-app.entrypoints: websecure
+      traefik.http.routers.qa-app.tls: "true"
+      traefik.http.routers.qa-app.tls.certresolver: leax
+      traefik.http.services.qa-app.loadbalancer.server.port: "3000"
+    networks:
+      - leaxpanel
+
+  redis:
+    image: redis:7-alpine
+    profiles: [with-redis]
+    restart: unless-stopped
+    mem_limit: 96m
+    networks:
+      - leaxpanel
+
+networks:
+  leaxpanel:
+    external: true

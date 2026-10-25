@@ -1,0 +1,28 @@
+{
+  "name": "leaxpanel",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "start": "node scripts/start.mjs",
+    "agent": "node agent/index.mjs",
+    "server": "node server/index.mjs",
+    "check:server": "node server/check-env.mjs",
+    "test:server": "node --test server/env.test.mjs server/compose.test.mjs server/auth.test.mjs server/dependencies.test.mjs server/docker.test.mjs server/http.test.mjs agent/agent.test.mjs",
+    "verify": "npm run build && npm run test:server"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "typescript": "latest",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0"
+  }
+}

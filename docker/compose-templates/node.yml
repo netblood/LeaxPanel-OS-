@@ -1,0 +1,29 @@
+services:
+  app:
+    build:
+      context: ${PROJECT_PATH:-.}
+    restart: unless-stopped
+    env_file:
+      - ${ENV_FILE:-.env}
+    mem_limit: ${APP_MEMORY_LIMIT:-512m}
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.${APP_NAME:-node-app}.rule: Host(`${APP_DOMAIN:-app.localhost}`)
+      traefik.http.routers.${APP_NAME:-node-app}.entrypoints: websecure
+      traefik.http.routers.${APP_NAME:-node-app}.tls: "true"
+      traefik.http.routers.${APP_NAME:-node-app}.tls.certresolver: leax
+      traefik.http.services.${APP_NAME:-node-app}.loadbalancer.server.port: "${APP_PORT:-3000}"
+    networks:
+      - leaxpanel
+
+  redis:
+    image: redis:7-alpine
+    profiles: [with-redis]
+    restart: unless-stopped
+    mem_limit: 96m
+    networks:
+      - leaxpanel
+
+networks:
+  leaxpanel:
+    external: true
